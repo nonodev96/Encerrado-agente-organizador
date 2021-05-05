@@ -8,7 +8,7 @@ package es.uja.ssmmaa.dots_and_boxes.agentes;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.NombreServicio.ORGANIZADOR;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.TipoServicio.SISTEMA;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.TIME_OUT;
-import es.uja.ssmmaa.dots_and_boxes.tareas.TaskReceivePropose_Organizador;
+import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponsePropose_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.project.Constantes;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TareaSubscripcionDF;
 import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
@@ -171,7 +171,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
                 MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_PROPOSE),
                 MessageTemplate.MatchPerformative(ACLMessage.PROPOSE)
         );
-        addBehaviour(new TaskReceivePropose_Organizador(this, template_RP));
+        addBehaviour(new TaskResponsePropose_Organizador(this, template_RP));
     }
 
     private void crearSubscripcion(Constantes.NombreServicio servicio, AID agente) {
