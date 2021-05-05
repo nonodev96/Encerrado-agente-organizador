@@ -40,7 +40,7 @@
         <dependency>
             <groupId>com.github.PedroJSanchez</groupId>
             <artifactId>OntoJuegoTablero</artifactId>
-            <version>v1.2.2</version>
+            <version>v1.3.0</version>
         </dependency>
         
     </dependencies>
