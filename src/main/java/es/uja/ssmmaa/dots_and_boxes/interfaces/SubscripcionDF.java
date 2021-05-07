@@ -6,7 +6,7 @@
 package es.uja.ssmmaa.dots_and_boxes.interfaces;
 
 import es.uja.ssmmaa.dots_and_boxes.project.Constantes;
-import es.uja.ssmmaa.dots_and_boxes.project.Constantes.NombreServicio;
+import es.uja.ssmmaa.ontologia.Vocabulario;
 
 import jade.core.AID;
 
@@ -19,11 +19,11 @@ import jade.core.AID;
  */
 public interface SubscripcionDF {
 
-    public void addAgent(AID agente, NombreServicio servicio);
+    public void addAgent(AID agente, Vocabulario.TipoServicio servicio);
 
-    public boolean removeAgent(AID agente, NombreServicio servicio);
+    public boolean removeAgent(AID agente, Vocabulario.TipoServicio servicio);
 
     public void cancelSubscription(AID agente);
 
-    public void requestSubscription(Constantes.NombreServicio servicio, AID agent);
+    public void requestSubscription(Vocabulario.TipoServicio servicio, AID agent);
 }

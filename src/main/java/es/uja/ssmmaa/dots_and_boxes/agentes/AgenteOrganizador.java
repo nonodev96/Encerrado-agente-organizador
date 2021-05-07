@@ -5,8 +5,6 @@
  */
 package es.uja.ssmmaa.dots_and_boxes.agentes;
 
-import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.NombreServicio.ORGANIZADOR;
-import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.TipoServicio.SISTEMA;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.TIME_OUT;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.ESPERA;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponserPropose_Organizador;
@@ -100,7 +98,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     // Deberia ser Map<AID, Arraylist<Product>>, pero a json no le gusta AID como clave :(
     public AID agente_organizador_AID;
     public AID agente_monitor_AID;
-    public HashMap<Constantes.NombreServicio, ArrayList<AID>> agents;
+    public HashMap<Vocabulario.TipoServicio, ArrayList<AID>> agents;
     public HashMap<String, TaskIniciatorSubscription_Organizador> agentsSubscriptions;
 
     private ArrayList<MessageSubscription> messagesInformToProcess;
@@ -127,7 +125,6 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         sd.setType(Vocabulario.TipoServicio.ORGANIZADOR.name());
         sd.setName(Vocabulario.TipoJuego.TUBERIAS.name());
         dfd.addServices(sd);
-
         try {
             DFService.register(this, dfd);
         } catch (FIPAException fe) {
@@ -205,7 +202,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     }
 
     @Override
-    public void requestSubscription(Constantes.NombreServicio servicio, AID agent) {
+    public void requestSubscription(Vocabulario.TipoServicio servicio, AID agent) {
         this.addMsgConsole("createSubscription: " + agent.getLocalName());
         //Creamos el mensaje para lanzar el protocolo Subscribe
         ACLMessage msg = new ACLMessage(ACLMessage.SUBSCRIBE);
@@ -229,7 +226,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     }
 
     @Override
-    public void addAgent(AID agente, Constantes.NombreServicio servicio) {
+    public void addAgent(AID agente, Vocabulario.TipoServicio servicio) {
         this.addMsgConsole("addAgent  AgentID: " + agente.getLocalName());
         this.addMsgConsole("addAgent Servicio: " + servicio.name());
 
@@ -240,9 +237,9 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
 
                 lista.add(agente);
                 break;
-            case MONITOR:
-                lista.add(agente);
-                break;
+//            case MONITOR:
+//                lista.add(agente);
+//                break;
             case ORGANIZADOR:
 
                 break;
@@ -256,7 +253,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     }
 
     @Override
-    public boolean removeAgent(AID agente, Constantes.NombreServicio servicio) {
+    public boolean removeAgent(AID agente, Vocabulario.TipoServicio servicio) {
         boolean to_return = false;
         ArrayList<AID> lista = this.agents.getOrDefault(servicio, new ArrayList<>());
 

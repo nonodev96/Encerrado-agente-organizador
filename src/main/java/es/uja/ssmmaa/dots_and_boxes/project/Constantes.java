@@ -34,17 +34,4 @@ public interface Constantes {
             this.statusValue = statusValue;
         }
     }
-
-    public enum TipoServicio {
-        GUI, UTILIDAD, SISTEMA;
-    }
-
-    public static final TipoServicio[] TIPOS = TipoServicio.values();
-
-    public enum NombreServicio {
-        ORGANIZADOR, JUGADOR, TABLERO, MONITOR;
-    }
-
-    public static final NombreServicio[] SERVICIOS = NombreServicio.values();
-
 }
