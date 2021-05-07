@@ -16,8 +16,8 @@ public interface SendMessagesInform<T> extends MessageInform<T> {
 
     public GestorSubscripciones getGestor();
 
-    public List<T> getMessagesInform();
-
     public void addMsgConsole(String msg);
+
+    public List<T> getMessagesInform();
 
 }

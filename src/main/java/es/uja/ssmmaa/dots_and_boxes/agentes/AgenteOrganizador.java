@@ -16,12 +16,14 @@ import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
 import es.uja.ssmmaa.dots_and_boxes.interfaces.SubscripcionDF;
 import es.uja.ssmmaa.dots_and_boxes.interfaces.MessageInform;
 import es.uja.ssmmaa.dots_and_boxes.gui.ConsolaJFrame;
+import es.uja.ssmmaa.dots_and_boxes.interfaces.SendMessagesInform;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendPropose_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizadorSub;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskIniciatorSubscription_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponderSubscription_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendNotifications_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.util.MensajeConsola;
+import es.uja.ssmmaa.dots_and_boxes.util.MessageSubscription;
 
 import es.uja.ssmmaa.ontologia.Vocabulario;
 import es.uja.ssmmaa.ontologia.Vocabulario.TipoJuego;
@@ -50,7 +52,7 @@ import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.SubscriptionInitiator;
-import jade.util.leap.List;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -82,7 +84,7 @@ import java.util.Map;
  *
  * @author nono_
  */
-public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrganizadorSub, MessageInform<SubInform> {
+public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrganizadorSub, SendMessagesInform<MessageSubscription> {
 
     private GestorSubscripciones gestor;
 
@@ -101,7 +103,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     public HashMap<Constantes.NombreServicio, ArrayList<AID>> agents;
     public HashMap<String, TaskIniciatorSubscription_Organizador> agentsSubscriptions;
 
-    private ArrayList<SubInform> messagesInformToProcess;
+    private ArrayList<MessageSubscription> messagesInformToProcess;
     private ArrayList<MensajeConsola> messagesConsoleToProcess;
 
     public AgenteOrganizador() {
@@ -119,16 +121,15 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         this.UI_consola = new ConsolaJFrame(this);
 
         // Registro del agente en las Páginas Amarrillas
-        DFAgentDescription template = new DFAgentDescription();
-        template.setName(getAID());
-        ServiceDescription templateSD = new ServiceDescription();
+        DFAgentDescription dfd = new DFAgentDescription();
+        dfd.setName(getAID());
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType(Vocabulario.TipoServicio.ORGANIZADOR.name());
+        sd.setName(Vocabulario.TipoJuego.TUBERIAS.name());
+        dfd.addServices(sd);
 
-        templateSD.setType(Vocabulario.TipoServicio.ORGANIZADOR.name());
-        templateSD.setName(Vocabulario.TipoJuego.TUBERIAS.name());
-
-        template.addServices(templateSD);
         try {
-            DFService.register(this, template);
+            DFService.register(this, dfd);
         } catch (FIPAException fe) {
             fe.printStackTrace();
         }
@@ -174,7 +175,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         // Para localiar a los agentes 
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription templateSd = new ServiceDescription();
-        templateSd.setType(SISTEMA.name());
+        templateSd.setType(Vocabulario.TipoServicio.ORGANIZADOR.name());
         template.addServices(templateSd);
         addBehaviour(new TareaSubscripcionDF(this, template));
 
@@ -307,7 +308,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     }
 
     @Override
-    public void addMessagesInform(SubInform message) {
+    public void addMessagesInform(MessageSubscription message) {
         this.messagesInformToProcess.add(message);
     }
 
@@ -324,6 +325,12 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public List<MessageSubscription> getMessagesInform() {
+        return messagesInformToProcess;
+    }
+
+
     /*
      * ========================================================================
      */
@@ -331,7 +338,8 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         // Contenido del mensaje representado en la ontología
         CompletarPartida completarPartida = new CompletarPartida();
         completarPartida.setPartida(partida);
-        completarPartida.setListaJugadores(listaJugadores);
+        // TODO
+//        completarPartida.setListaJugadores(listaJugadores);
 
 //        String idJuego = tipoJuego.name() + "-" + diaJuego + "-" + numJuego;
 //        juego = new Juego(idJuego, tipoJuego);
@@ -387,5 +395,4 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         TaskSendPropose_Organizador task = new TaskSendPropose_Organizador(this, msg, proponerJuego);
         addBehaviour(task);
     }
-
 }
