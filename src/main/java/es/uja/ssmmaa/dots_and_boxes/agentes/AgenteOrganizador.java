@@ -123,7 +123,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         dfd.setName(getAID());
         ServiceDescription sd = new ServiceDescription();
         sd.setType(Vocabulario.TipoServicio.ORGANIZADOR.name());
-        sd.setName(Vocabulario.TipoJuego.TUBERIAS.name());
+        sd.setName(Vocabulario.TipoJuego.ENCERRADO.name());
         dfd.addServices(sd);
         try {
             DFService.register(this, dfd);
