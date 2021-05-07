@@ -5,21 +5,21 @@
  */
 package es.uja.ssmmaa.dots_and_boxes.tareas;
 
-import es.uja.ssmmaa.curso1920.ontologia.juegoTablero.CompletarPartida;
-import es.uja.ssmmaa.curso1920.ontologia.juegoTablero.Juego;
-import jade.content.AgentAction;
-import jade.content.ContentElement;
-import jade.content.ContentManager;
-import jade.content.lang.Codec;
-import jade.content.onto.OntologyException;
-import jade.core.AID;
-import jade.core.Agent;
-import jade.lang.acl.ACLMessage;
+import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizador;
+
 import static jade.lang.acl.ACLMessage.ACCEPT_PROPOSAL;
 import static jade.lang.acl.ACLMessage.REJECT_PROPOSAL;
+import jade.content.onto.OntologyException;
+import jade.content.ContentElement;
+import jade.content.ContentManager;
 import jade.proto.ProposeInitiator;
+import jade.content.AgentAction;
+import jade.lang.acl.ACLMessage;
+import jade.content.lang.Codec;
 import java.util.Iterator;
 import java.util.Vector;
+import jade.core.Agent;
+import jade.core.AID;
 
 /**
  * <

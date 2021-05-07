@@ -5,8 +5,10 @@
  */
 package es.uja.ssmmaa.dots_and_boxes.tareas;
 
-import es.uja.ssmmaa.dots_and_boxes.project.Constantes.NombreServicio;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.SERVICIOS;
+import es.uja.ssmmaa.dots_and_boxes.interfaces.SubscripcionDF;
+import es.uja.ssmmaa.dots_and_boxes.project.Constantes.NombreServicio;
+
 import jade.core.AID;
 import jade.core.Agent;
 import jade.domain.DFSubscriber;

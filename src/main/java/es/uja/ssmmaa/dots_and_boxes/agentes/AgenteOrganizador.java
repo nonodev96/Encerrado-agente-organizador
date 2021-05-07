@@ -8,26 +8,31 @@ package es.uja.ssmmaa.dots_and_boxes.agentes;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.NombreServicio.ORGANIZADOR;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.TipoServicio.SISTEMA;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.TIME_OUT;
-import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponsePropose_Organizador;
+import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.ESPERA;
+import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponserPropose_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.project.Constantes;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TareaSubscripcionDF;
 import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
-import es.uja.ssmmaa.dots_and_boxes.tareas.SubscripcionDF;
-
-import com.google.gson.Gson;
-
-import es.uja.ssmmaa.curso1920.ontologia.Vocabulario;
-import es.uja.ssmmaa.curso1920.ontologia.Vocabulario.TipoJuego;
-import es.uja.ssmmaa.curso1920.ontologia.juegoTablero.CompletarPartida;
-import es.uja.ssmmaa.curso1920.ontologia.juegoTablero.InfoJuego;
-import es.uja.ssmmaa.curso1920.ontologia.juegoTablero.Juego;
-import es.uja.ssmmaa.curso1920.ontologia.juegoTablero.Partida;
-import es.uja.ssmmaa.curso1920.ontologia.juegoTablero.ProponerJuego;
+import es.uja.ssmmaa.dots_and_boxes.interfaces.SubscripcionDF;
+import es.uja.ssmmaa.dots_and_boxes.interfaces.MessageInform;
 import es.uja.ssmmaa.dots_and_boxes.gui.ConsolaJFrame;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendPropose_Organizador;
-import es.uja.ssmmaa.dots_and_boxes.tareas.TasksOrganizadorSub;
-import jade.content.ContentElement;
+import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizadorSub;
+import es.uja.ssmmaa.dots_and_boxes.tareas.TaskIniciatorSubscription_Organizador;
+import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponderSubscription_Organizador;
+import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendNotifications_Organizador;
+import es.uja.ssmmaa.dots_and_boxes.util.MensajeConsola;
 
+import es.uja.ssmmaa.ontologia.Vocabulario;
+import es.uja.ssmmaa.ontologia.Vocabulario.TipoJuego;
+import es.uja.ssmmaa.ontologia.juegoTablero.CompletarPartida;
+import es.uja.ssmmaa.ontologia.juegoTablero.InfoJuego;
+import es.uja.ssmmaa.ontologia.juegoTablero.Juego;
+import es.uja.ssmmaa.ontologia.juegoTablero.Partida;
+import es.uja.ssmmaa.ontologia.juegoTablero.ProponerJuego;
+import es.uja.ssmmaa.ontologia.juegoTablero.SubInform;
+
+import jade.content.ContentElement;
 import jade.content.ContentManager;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
@@ -49,6 +54,7 @@ import jade.util.leap.List;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <
@@ -76,10 +82,9 @@ import java.util.HashMap;
  *
  * @author nono_
  */
-public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrganizadorSub {
+public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrganizadorSub, MessageInform<SubInform> {
 
     private GestorSubscripciones gestor;
-    private Gson gson;
 
     // Para la generación y obtención del contenido de los mensages
     private ContentManager manager;
@@ -93,13 +98,17 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     // Deberia ser Map<AID, Arraylist<Product>>, pero a json no le gusta AID como clave :(
     public AID agente_organizador_AID;
     public AID agente_monitor_AID;
-    public HashMap<Constantes.NombreServicio, ArrayList<AID>> agentes;
-    public HashMap<Constantes.NombreServicio, ArrayList<AID>> agentes_subscritos;
+    public HashMap<Constantes.NombreServicio, ArrayList<AID>> agents;
+    public HashMap<String, TaskIniciatorSubscription_Organizador> agentsSubscriptions;
+
+    private ArrayList<SubInform> messagesInformToProcess;
+    private ArrayList<MensajeConsola> messagesConsoleToProcess;
 
     public AgenteOrganizador() {
-        this.gson = new Gson();
-        this.agentes = new HashMap<>();
-        this.agentes_subscritos = new HashMap<>();
+        this.agents = new HashMap<>();
+        this.agentsSubscriptions = new HashMap<>();
+        this.messagesInformToProcess = new ArrayList<>();
+        this.messagesConsoleToProcess = new ArrayList<>();
     }
 
     @Override
@@ -115,7 +124,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         ServiceDescription templateSD = new ServiceDescription();
 
         templateSD.setType(Vocabulario.TipoServicio.ORGANIZADOR.name());
-        templateSD.setName(Vocabulario.TipoJuego.TRES_EN_RAYA.name());
+        templateSD.setName(Vocabulario.TipoJuego.TUBERIAS.name());
 
         template.addServices(templateSD);
         try {
@@ -129,6 +138,10 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
 
     @Override
     protected void takeDown() {
+        // Cancelamos las subscripciones
+        for (Map.Entry<String, TaskIniciatorSubscription_Organizador> entry : this.agentsSubscriptions.entrySet()) {
+
+        }
         // Eliminar registro del agente en las Páginas Amarillas
         try {
             DFService.deregister(this);
@@ -144,16 +157,15 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     }
 
     public void init() {
-
         //Registro de la Ontología
         this.manager = new ContentManager();
         try {
-            this.ontology = Vocabulario.getOntology(TipoJuego.TRES_EN_RAYA);
+            this.ontology = Vocabulario.getOntology(TipoJuego.ENCERRADO);
             this.manager = (ContentManager) getContentManager();
             this.manager.registerLanguage(this.codec);
             this.manager.registerOntology(this.ontology);
         } catch (BeanOntologyException ex) {
-            this.addMsgConsola("Error al registrar la ontología \n" + ex);
+            this.addMsgConsole("Error al registrar la ontología \n" + ex);
 //            consola.addMensaje("Error al registrar la ontología \n" + ex);
             this.doDelete();
         }
@@ -166,41 +178,61 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         template.addServices(templateSd);
         addBehaviour(new TareaSubscripcionDF(this, template));
 
+        // Plantilla del mensaje de suscripción
+        MessageTemplate plantilla;
+        plantilla = MessageTemplate.and(
+                MessageTemplate.not(
+                        MessageTemplate.or(
+                                MessageTemplate.MatchSender(this.getDefaultDF()),
+                                MessageTemplate.MatchSender(this.getAMS())
+                        )
+                ),
+                MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE)
+        );
+        addBehaviour(new TaskResponderSubscription_Organizador(this, plantilla, this.gestor));
+
         // Plantilla para responder mensajes FIPA_PROPOSE
         MessageTemplate template_RP = MessageTemplate.and(
                 MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_PROPOSE),
                 MessageTemplate.MatchPerformative(ACLMessage.PROPOSE)
         );
-        addBehaviour(new TaskResponsePropose_Organizador(this, template_RP));
+        addBehaviour(new TaskResponserPropose_Organizador(this, template_RP));
+
+        // Tarea de envio de mensajes inform a los subscriptores
+        addBehaviour(new TaskSendNotifications_Organizador(this, ESPERA));
+
     }
 
-    private void crearSubscripcion(Constantes.NombreServicio servicio, AID agente) {
-        this.addMsgConsola("crearSubscripcion: " + agente.getLocalName());
-        ArrayList<AID> lista_subscritos = this.agentes_subscritos.getOrDefault(servicio, new ArrayList<>());
-        lista_subscritos.add(agente);
-        this.agentes_subscritos.put(servicio, lista_subscritos);
+    @Override
+    public void requestSubscription(Constantes.NombreServicio servicio, AID agent) {
+        this.addMsgConsole("createSubscription: " + agent.getLocalName());
+        //Creamos el mensaje para lanzar el protocolo Subscribe
+        ACLMessage msg = new ACLMessage(ACLMessage.SUBSCRIBE);
+        msg.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
+        msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
+        msg.setSender(this.getAID());
+        msg.addReceiver(agent);
+        // Añadimos la tarea de suscripción
+        TaskIniciatorSubscription_Organizador sub = new TaskIniciatorSubscription_Organizador(this, msg);
+        addBehaviour(sub);
     }
 
-    private void cancelarSubscripcion(Constantes.NombreServicio servicio, AID agente) {
-        this.addMsgConsola("cancelarSubscripcion: " + agente.getLocalName());
-
-        ArrayList<AID> lista_subscritos = this.agentes_subscritos.getOrDefault(servicio, new ArrayList<>());
-        ArrayList<AID> list_to_delete_subs = new ArrayList<>();
-        for (AID aid : lista_subscritos) {
-            if (aid.getLocalName().equals(agente.getLocalName())) {
-                list_to_delete_subs.add(aid);
-            }
+    @Override
+    public void cancelSubscription(AID agente) {
+        this.addMsgConsole("cancelSubscription: " + agente.getLocalName());
+        TaskIniciatorSubscription_Organizador sub = this.agentsSubscriptions.remove(agente.getLocalName());
+        if (sub != null) {
+            sub.cancel(agente, true);
+            this.addMsgConsole("SUSBCRIPCIÓN CANCELADA PARA\n" + agente);
         }
-        lista_subscritos.removeAll(list_to_delete_subs);
-        this.agentes.put(servicio, lista_subscritos);
     }
 
     @Override
     public void addAgent(AID agente, Constantes.NombreServicio servicio) {
-        this.addMsgConsola("addAgent  AgentID: " + agente.getLocalName());
-        this.addMsgConsola("addAgent Servicio: " + servicio.name());
+        this.addMsgConsole("addAgent  AgentID: " + agente.getLocalName());
+        this.addMsgConsole("addAgent Servicio: " + servicio.name());
 
-        ArrayList<AID> lista = this.agentes.getOrDefault(servicio, new ArrayList<>());
+        ArrayList<AID> lista = this.agents.getOrDefault(servicio, new ArrayList<>());
 
         switch (servicio) {
             case JUGADOR:
@@ -214,18 +246,18 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
 
                 break;
             case TABLERO:
-                crearSubscripcion(servicio, agente);
+                requestSubscription(servicio, agente);
                 lista.add(agente);
                 break;
         }
 
-        this.agentes.put(servicio, lista);
+        this.agents.put(servicio, lista);
     }
 
     @Override
     public boolean removeAgent(AID agente, Constantes.NombreServicio servicio) {
         boolean to_return = false;
-        ArrayList<AID> lista = this.agentes.getOrDefault(servicio, new ArrayList<>());
+        ArrayList<AID> lista = this.agents.getOrDefault(servicio, new ArrayList<>());
 
         // Seleccionamos el que vamos a borrar
         ArrayList<AID> list_to_delete = new ArrayList<>();
@@ -237,11 +269,11 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
             }
         }
 
-        this.cancelarSubscripcion(servicio, agente);
+        this.cancelSubscription(agente);
 
         // Actualizamos
         lista.removeAll(list_to_delete);
-        this.agentes.put(servicio, lista);
+        this.agents.put(servicio, lista);
 
         return to_return;
     }
@@ -270,16 +302,21 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
      * ========================================================================
      */
     @Override
-    public void addMsgConsola(String msg) {
+    public void addMsgConsole(String msg) {
         this.UI_consola.addMensaje(msg);
+    }
+
+    @Override
+    public void addMessagesInform(SubInform message) {
+        this.messagesInformToProcess.add(message);
     }
 
     // =============
     // Subscriptions
     // =============
     @Override
-    public void addSubcription(String nameAgente, SubscriptionInitiator sub) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void addSubcription(String nameAgent, SubscriptionInitiator sub) {
+        this.agentsSubscriptions.put(nameAgent, (TaskIniciatorSubscription_Organizador) sub);
     }
 
     @Override
@@ -313,7 +350,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
             // Completamos en contenido del mensajes
             manager.fillContent(msg, ac);
         } catch (Codec.CodecException | OntologyException ex) {
-            this.addMsgConsola("Error en la construcción del mensaje en Proponer Juego \n" + ex);
+            this.addMsgConsole("Error en la construcción del mensaje en Proponer Juego \n" + ex);
 //            consola.addMensaje("Error en la construcción del mensaje en Proponer Juego \n" + ex);
         }
 
@@ -343,11 +380,12 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
             // Completamos en contenido del mensajes
             manager.fillContent(msg, ac);
         } catch (Codec.CodecException | OntologyException ex) {
-            this.addMsgConsola("Error en la construcción del mensaje en Proponer Juego \n" + ex);
+            this.addMsgConsole("Error en la construcción del mensaje en Proponer Juego \n" + ex);
 //            consola.addMensaje("Error en la construcción del mensaje en Proponer Juego \n" + ex);
         }
 
         TaskSendPropose_Organizador task = new TaskSendPropose_Organizador(this, msg, proponerJuego);
         addBehaviour(task);
     }
+
 }

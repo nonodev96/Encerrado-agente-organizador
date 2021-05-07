@@ -6,12 +6,12 @@
 package es.uja.ssmmaa.dots_and_boxes.tareas;
 
 import es.uja.ssmmaa.dots_and_boxes.agentes.AgenteOrganizador;
+
 import jade.content.Concept;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.Agent;
-import jade.core.behaviours.DataStore;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.lang.acl.ACLMessage;
@@ -24,14 +24,14 @@ import java.util.logging.Logger;
  *
  * @author nono_
  */
-public class TaskResponsePropose_Organizador extends ProposeResponder {
+public class TaskResponserPropose_Organizador extends ProposeResponder {
 
     private final AgenteOrganizador myAgent_organizador;
 
-    public TaskResponsePropose_Organizador(Agent a, MessageTemplate mt) {
+    public TaskResponserPropose_Organizador(Agent a, MessageTemplate mt) {
         super(a, mt);
         this.myAgent_organizador = (AgenteOrganizador) a;
-        this.myAgent_organizador.addMsgConsola("        --> ProposeResponder(Agent a, MessageTemplate mt)");
+        this.myAgent_organizador.addMsgConsole("        --> ProposeResponder(Agent a, MessageTemplate mt)");
     }
 
     @Override
@@ -44,7 +44,7 @@ public class TaskResponsePropose_Organizador extends ProposeResponder {
             Concept c = a.getAction();
             System.out.println("C : " + c.toString());
         } catch (Codec.CodecException | OntologyException ex) {
-            Logger.getLogger(TaskResponsePropose_Organizador.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TaskResponserPropose_Organizador.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         ACLMessage reply = response_completar_juego(propose);

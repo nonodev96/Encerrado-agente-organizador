@@ -38,9 +38,9 @@
         </dependency>
         
         <dependency>
-            <groupId>com.github.PedroJSanchez</groupId>
-            <artifactId>OntoJuegoTablero</artifactId>
-            <version>v1.3.0</version>
+            <groupId>com.github.PedroJSanchez</groupId> 
+            <artifactId>OntoJuegos</artifactId> 
+            <version>1.0</version> 
         </dependency>
         
     </dependencies>

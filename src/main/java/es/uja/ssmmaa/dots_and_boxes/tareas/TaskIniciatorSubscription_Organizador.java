@@ -5,9 +5,15 @@
  */
 package es.uja.ssmmaa.dots_and_boxes.tareas;
 
-import es.uja.ssmmaa.curso1920.ontologia.juegoTablero.ClasificacionJuego;
-import es.uja.ssmmaa.curso1920.ontologia.juegoTablero.IncidenciaJuego;
-import es.uja.ssmmaa.curso1920.ontologia.juegoTablero.Justificacion;
+import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizadorSub;
+import es.uja.ssmmaa.ontologia.juegoTablero.ClasificacionJuego;
+import es.uja.ssmmaa.ontologia.juegoTablero.IncidenciaJuego;
+import es.uja.ssmmaa.ontologia.juegoTablero.Justificacion;
+
+import static jade.lang.acl.ACLMessage.FAILURE;
+import static jade.lang.acl.ACLMessage.AGREE;
+import static jade.lang.acl.ACLMessage.NOT_UNDERSTOOD;
+import static jade.lang.acl.ACLMessage.REFUSE;
 import jade.content.ContentElement;
 import jade.content.ContentManager;
 import jade.content.lang.Codec;
@@ -15,10 +21,6 @@ import jade.content.onto.OntologyException;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
-import static jade.lang.acl.ACLMessage.AGREE;
-import static jade.lang.acl.ACLMessage.FAILURE;
-import static jade.lang.acl.ACLMessage.NOT_UNDERSTOOD;
-import static jade.lang.acl.ACLMessage.REFUSE;
 import jade.proto.SubscriptionInitiator;
 import java.util.Iterator;
 import java.util.Vector;
@@ -27,11 +29,11 @@ import java.util.Vector;
  *
  * @author nono_
  */
-public class TaskInform extends SubscriptionInitiator {
+public class TaskIniciatorSubscription_Organizador extends SubscriptionInitiator {
 
     private final TasksOrganizadorSub agente;
 
-    public TaskInform(Agent a, ACLMessage msg) {
+    public TaskIniciatorSubscription_Organizador(Agent a, ACLMessage msg) {
         super(a, msg);
         this.agente = (TasksOrganizadorSub) a;
     }
@@ -39,13 +41,13 @@ public class TaskInform extends SubscriptionInitiator {
     @Override
     protected void handleOutOfSequence(ACLMessage msg) {
         // Ha llegado un mensaje fuera de la secuencia del protocolo
-        agente.addMsgConsola("ERROR en Informar Juego___________________\n" + msg);
+        agente.addMsgConsole("ERROR en Informar Juego___________________\n" + msg);
     }
 
     @Override
     protected void handleAllResponses(Vector responses) {
         ContentManager manager;
-        Justificacion justificacion = null;
+        Justificacion justificacion;
         Iterator it = responses.iterator();
 
         while (it.hasNext()) {
@@ -59,34 +61,35 @@ public class TaskInform extends SubscriptionInitiator {
 
                     switch (msg.getPerformative()) {
                         case NOT_UNDERSTOOD:
-//                            agente.addMsgConsola("El agente " + emisor + " no entiende la suscripción\n" + justificacion);
+                            agente.addMsgConsole("El agente " + emisor + " no entiende la suscripción\n" + justificacion);
                             break;
                         case REFUSE:
-//                            agente.addMsgConsola("El agente " + emisor + " rechaza la suscripción\n" + justificacion);
+                            agente.addMsgConsole("El agente " + emisor + " rechaza la suscripción\n" + justificacion);
                             break;
                         case FAILURE:
-//                            agente.addMsgConsola("El agente " + emisor + " no ha completado la suscripción\n" + justificacion);
+                            agente.addMsgConsole("El agente " + emisor + " no ha completado la suscripción\n" + justificacion);
                             break;
                         case AGREE:
-//                            agente.addSubcription(emisor.getLocalName(), this);
-//                            agente.addMsgConsola("El agente " + emisor + " ha aceptado la suscripción\n" + justificacion);
+                            // Este añade la subscripción a la lista si se confirma
+                            agente.addSubcription(emisor.getLocalName(), this);
+                            agente.addMsgConsole("El agente " + emisor + " ha aceptado la suscripción\n" + justificacion);
                             break;
                         default:
-                            agente.addMsgConsola("El agente " + emisor + " envía un mensaje desconocido\n"
+                            agente.addMsgConsole("El agente " + emisor + " envía un mensaje desconocido\n"
                                     + msg);
                     }
                 } catch (Codec.CodecException | OntologyException ex) {
-                    agente.addMsgConsola(emisor.getLocalName()
+                    agente.addMsgConsole(emisor.getLocalName()
                             + " El contenido del mensaje es incorrecto\n\t"
                             + ex);
                 }
             } else {
-                agente.addMsgConsola("NO SE ENTIENDE EL MENSAJE\n" + msg);
+                agente.addMsgConsole("NO SE ENTIENDE EL MENSAJE\n" + msg);
             }
         }
 
         if (responses.isEmpty()) {
-            agente.addMsgConsola("EL ORGANIZADOR NO RESPONDE A LA SUSCRIPCIÓN");
+            agente.addMsgConsole("EL ORGANIZADOR NO RESPONDE A LA SUSCRIPCIÓN");
         }
     }
 
@@ -100,15 +103,15 @@ public class TaskInform extends SubscriptionInitiator {
 
             if (contenido instanceof ClasificacionJuego) {
                 // Finalización correcta del juego
-                agente.addMsgConsola("CLASIFICACION\n" + (ClasificacionJuego) contenido);
+                agente.addMsgConsole("CLASIFICACION\n" + (ClasificacionJuego) contenido);
             } else {
                 // El juego no ha finalizado
-                agente.addMsgConsola("INCIDENCIA\n" + (IncidenciaJuego) contenido);
+                agente.addMsgConsole("INCIDENCIA\n" + (IncidenciaJuego) contenido);
             }
 
             agente.setResultado(inform.getSender(), contenido);
         } catch (Codec.CodecException | OntologyException ex) {
-            agente.addMsgConsola("Error en el formato del mensaje del agente "
+            agente.addMsgConsole("Error en el formato del mensaje del agente "
                     + inform.getSender().getLocalName());
         }
     }
