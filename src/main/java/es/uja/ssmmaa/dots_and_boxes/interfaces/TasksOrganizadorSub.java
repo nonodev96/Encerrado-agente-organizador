@@ -15,8 +15,9 @@ import jade.proto.SubscriptionInitiator;
  */
 public interface TasksOrganizadorSub extends TasksOrganizador {
 
-    // ?
-    public void addSubcription(String nameAgente, SubscriptionInitiator sub);
+    public void addSubscription(AID agente, SubscriptionInitiator sub);
+
+    public void cancelSubscription(AID agente);
 
     // ?
     public void setResultado(AID agenteOrganizador, ContentElement resultado);

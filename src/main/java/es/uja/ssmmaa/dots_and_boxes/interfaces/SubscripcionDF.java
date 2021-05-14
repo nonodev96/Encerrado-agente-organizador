@@ -9,6 +9,7 @@ import es.uja.ssmmaa.dots_and_boxes.project.Constantes;
 import es.uja.ssmmaa.ontologia.Vocabulario;
 
 import jade.core.AID;
+import jade.proto.SubscriptionInitiator;
 
 /**
  * Comportamiento necesario para que un agente pueda añadir y eliminar agentes
@@ -19,11 +20,8 @@ import jade.core.AID;
  */
 public interface SubscripcionDF {
 
-    public void addAgent(AID agente, Vocabulario.TipoServicio servicio);
+    public void addAgent(AID agente, Vocabulario.TipoJuego juego, Vocabulario.TipoServicio tipoServicio);
 
-    public boolean removeAgent(AID agente, Vocabulario.TipoServicio servicio);
+    public boolean removeAgent(AID agente, Vocabulario.TipoJuego juego, Vocabulario.TipoServicio tipoServicio);
 
-    public void cancelSubscription(AID agente);
-
-    public void requestSubscription(Vocabulario.TipoServicio servicio, AID agent);
 }

@@ -39,7 +39,7 @@ public class ConsolaJFrame extends javax.swing.JFrame {
             setVisible(true);
         }
         salida.append(mensaje);
-        salida.append("\n-------------------------------------------------------\n");
+        salida.append("\n");
     }
 
     /**

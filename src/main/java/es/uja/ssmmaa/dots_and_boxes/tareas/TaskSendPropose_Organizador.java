@@ -6,6 +6,8 @@
 package es.uja.ssmmaa.dots_and_boxes.tareas;
 
 import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizador;
+import es.uja.ssmmaa.ontologia.juegoTablero.JuegoAceptado;
+import es.uja.ssmmaa.ontologia.juegoTablero.Justificacion;
 
 import static jade.lang.acl.ACLMessage.ACCEPT_PROPOSAL;
 import static jade.lang.acl.ACLMessage.REJECT_PROPOSAL;
@@ -60,12 +62,19 @@ public class TaskSendPropose_Organizador extends ProposeInitiator {
                         // Envio CompletarPartida A Tablero
                         // Trato la respuesta con <JuegoAceptado>
                         // =========================
+                        if (respuesta instanceof JuegoAceptado) {
+                            JuegoAceptado juegoAceptado = (JuegoAceptado) respuesta;
+                            this.agente.addMsgConsole("Juego aceptado " + juegoAceptado.getJuego().getTipoJuego().name());
+                        }
                         break;
                     case REJECT_PROPOSAL:
                         // Envio CompletarPartida A Tablero
                         // Trato la respuesta con <Justificación>
                         // =========================
-                        
+                        if (respuesta instanceof Justificacion) {
+                            Justificacion justificacion = (Justificacion) respuesta;
+                            this.agente.addMsgConsole("justificacion " + justificacion.getDetalle().name());
+                        }
                         break;
                     default:
                 }

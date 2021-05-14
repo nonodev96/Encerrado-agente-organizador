@@ -9,6 +9,7 @@ import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
 
 import jade.content.ContentManager;
 import jade.content.onto.Ontology;
+import jade.core.Agent;
 
 /**
  *

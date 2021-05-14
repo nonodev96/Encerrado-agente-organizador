@@ -5,6 +5,7 @@
  */
 package es.uja.ssmmaa.dots_and_boxes.tareas;
 
+import es.uja.ssmmaa.dots_and_boxes.agentes.AgenteOrganizador;
 import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizadorSub;
 import es.uja.ssmmaa.ontologia.juegoTablero.ClasificacionJuego;
 import es.uja.ssmmaa.ontologia.juegoTablero.IncidenciaJuego;
@@ -31,11 +32,11 @@ import java.util.Vector;
  */
 public class TaskIniciatorSubscription_Organizador extends SubscriptionInitiator {
 
-    private final TasksOrganizadorSub agente;
+    private final AgenteOrganizador agente;
 
     public TaskIniciatorSubscription_Organizador(Agent a, ACLMessage msg) {
         super(a, msg);
-        this.agente = (TasksOrganizadorSub) a;
+        this.agente = (AgenteOrganizador) a;
     }
 
     @Override
@@ -55,37 +56,40 @@ public class TaskIniciatorSubscription_Organizador extends SubscriptionInitiator
             AID emisor = msg.getSender();
             manager = agente.getManager();
 
-            if (manager != null) {
-                try {
-                    justificacion = (Justificacion) manager.extractContent(msg);
-
-                    switch (msg.getPerformative()) {
-                        case NOT_UNDERSTOOD:
-                            agente.addMsgConsole("El agente " + emisor + " no entiende la suscripción\n" + justificacion);
-                            break;
-                        case REFUSE:
-                            agente.addMsgConsole("El agente " + emisor + " rechaza la suscripción\n" + justificacion);
-                            break;
-                        case FAILURE:
-                            agente.addMsgConsole("El agente " + emisor + " no ha completado la suscripción\n" + justificacion);
-                            break;
-                        case AGREE:
-                            // Este añade la subscripción a la lista si se confirma
-                            agente.addSubcription(emisor.getLocalName(), this);
-                            agente.addMsgConsole("El agente " + emisor + " ha aceptado la suscripción\n" + justificacion);
-                            break;
-                        default:
-                            agente.addMsgConsole("El agente " + emisor + " envía un mensaje desconocido\n"
-                                    + msg);
-                    }
-                } catch (Codec.CodecException | OntologyException ex) {
-                    agente.addMsgConsole(emisor.getLocalName()
-                            + " El contenido del mensaje es incorrecto\n\t"
-                            + ex);
-                }
-            } else {
+            if (manager == null) {
                 agente.addMsgConsole("NO SE ENTIENDE EL MENSAJE\n" + msg);
+                return;
             }
+            try {
+                justificacion = (Justificacion) manager.extractContent(msg);
+
+                switch (msg.getPerformative()) {
+                    case NOT_UNDERSTOOD:
+                        agente.addMsgConsole("El agente " + emisor + " no entiende la suscripción\n" + justificacion);
+                        break;
+                    case REFUSE:
+                        agente.addMsgConsole("El agente " + emisor + " rechaza la suscripción\n" + justificacion);
+                        break;
+                    case FAILURE:
+                        agente.addMsgConsole("El agente " + emisor + " no ha completado la suscripción\n" + justificacion);
+                        break;
+                    case AGREE:
+
+                        // Esto iria en la aceptación
+                        agente.addSubscription(agente.getAID(), this);
+                        
+                        agente.addMsgConsole("El agente " + emisor + " ha aceptado la suscripción\n" + justificacion);
+                        break;
+                    default:
+                        agente.addMsgConsole("El agente " + emisor + " envía un mensaje desconocido\n"
+                                + msg);
+                }
+            } catch (Codec.CodecException | OntologyException ex) {
+                agente.addMsgConsole(emisor.getLocalName()
+                        + " El contenido del mensaje es incorrecto\n\t"
+                        + ex);
+            }
+
         }
 
         if (responses.isEmpty()) {
