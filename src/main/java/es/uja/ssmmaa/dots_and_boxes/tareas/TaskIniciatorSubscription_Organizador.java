@@ -74,10 +74,7 @@ public class TaskIniciatorSubscription_Organizador extends SubscriptionInitiator
                         agente.addMsgConsole("El agente " + emisor + " no ha completado la suscripción\n" + justificacion);
                         break;
                     case AGREE:
-
-                        // Esto iria en la aceptación
-                        agente.addSubscription(agente.getAID(), this);
-                        
+                        agente.addSubscription(emisor, this);
                         agente.addMsgConsole("El agente " + emisor + " ha aceptado la suscripción\n" + justificacion);
                         break;
                     default:

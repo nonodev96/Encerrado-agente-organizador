@@ -228,8 +228,17 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
 
                 break;
             case TABLERO:
+                ACLMessage msg = new ACLMessage(ACLMessage.SUBSCRIBE);
+                msg.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
+                msg.setSender(this.getAID());
+                msg.setLanguage(codec.getName());
+                msg.setOntology(ontology.getName());
+                // AID Tablero
+                msg.addReceiver(agente);
+                msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
 
-                
+                TaskIniciatorSubscription_Organizador task = new TaskIniciatorSubscription_Organizador(this, msg);
+
                 lista.add(agente);
                 break;
         }
