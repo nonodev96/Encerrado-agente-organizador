@@ -5,11 +5,11 @@
  */
 package es.uja.ssmmaa.dots_and_boxes.tareas;
 
-import es.uja.ssmmaa.dots_and_boxes.agentes.AgenteOrganizador;
-import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizadorSub;
 import es.uja.ssmmaa.ontologia.juegoTablero.ClasificacionJuego;
 import es.uja.ssmmaa.ontologia.juegoTablero.IncidenciaJuego;
 import es.uja.ssmmaa.ontologia.juegoTablero.Justificacion;
+
+import es.uja.ssmmaa.dots_and_boxes.agentes.AgenteOrganizador;
 
 import static jade.lang.acl.ACLMessage.FAILURE;
 import static jade.lang.acl.ACLMessage.AGREE;
@@ -51,18 +51,21 @@ public class TaskIniciatorSubscription_Organizador extends SubscriptionInitiator
         Justificacion justificacion;
         Iterator it = responses.iterator();
 
+        if (responses.isEmpty()) {
+            agente.addMsgConsole("EL ORGANIZADOR NO RESPONDE A LA SUSCRIPCIÓN");
+        }
+
         while (it.hasNext()) {
+
             ACLMessage msg = (ACLMessage) it.next();
             AID emisor = msg.getSender();
             manager = agente.getManager();
-
             if (manager == null) {
                 agente.addMsgConsole("NO SE ENTIENDE EL MENSAJE\n" + msg);
-                return;
+                throw new NullPointerException("manager error");
             }
             try {
                 justificacion = (Justificacion) manager.extractContent(msg);
-
                 switch (msg.getPerformative()) {
                     case NOT_UNDERSTOOD:
                         agente.addMsgConsole("El agente " + emisor + " no entiende la suscripción\n" + justificacion);
@@ -78,19 +81,12 @@ public class TaskIniciatorSubscription_Organizador extends SubscriptionInitiator
                         agente.addMsgConsole("El agente " + emisor + " ha aceptado la suscripción\n" + justificacion);
                         break;
                     default:
-                        agente.addMsgConsole("El agente " + emisor + " envía un mensaje desconocido\n"
-                                + msg);
+                        agente.addMsgConsole("El agente " + emisor + " envía un mensaje desconocido\n" + msg);
                 }
             } catch (Codec.CodecException | OntologyException ex) {
-                agente.addMsgConsole(emisor.getLocalName()
-                        + " El contenido del mensaje es incorrecto\n\t"
-                        + ex);
+                agente.addMsgConsole(emisor.getLocalName() + " El contenido del mensaje es incorrecto\n\t" + ex);
             }
 
-        }
-
-        if (responses.isEmpty()) {
-            agente.addMsgConsole("EL ORGANIZADOR NO RESPONDE A LA SUSCRIPCIÓN");
         }
     }
 
@@ -112,8 +108,7 @@ public class TaskIniciatorSubscription_Organizador extends SubscriptionInitiator
 
             agente.setResultado(inform.getSender(), contenido);
         } catch (Codec.CodecException | OntologyException ex) {
-            agente.addMsgConsole("Error en el formato del mensaje del agente "
-                    + inform.getSender().getLocalName());
+            agente.addMsgConsole("Error en el formato del mensaje del agente " + inform.getSender().getLocalName());
         }
     }
 

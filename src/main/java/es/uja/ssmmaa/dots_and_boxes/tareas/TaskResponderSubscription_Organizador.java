@@ -5,6 +5,7 @@
  */
 package es.uja.ssmmaa.dots_and_boxes.tareas;
 
+import es.uja.ssmmaa.dots_and_boxes.agentes.AgenteOrganizador;
 import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizadorSub;
 import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
 import es.uja.ssmmaa.dots_and_boxes.util.MessageSubscription;
@@ -26,62 +27,56 @@ public class TaskResponderSubscription_Organizador extends SubscriptionResponder
 
     private Subscription subscription;
     // Interfaz
-    private final TasksOrganizadorSub agente;
-
-    private final MessageSubscription infMessageSubscription;
-    private final GsonUtil<MessageSubscription> gsonUtil;
-    private final GestorSubscripciones gestor;
+    private final AgenteOrganizador myAgent_Organizador;
 
     public TaskResponderSubscription_Organizador(Agent a, MessageTemplate mt, SubscriptionManager sm) {
         super(a, mt, sm);
-        this.agente = (TasksOrganizadorSub) a;
-        this.gsonUtil = new GsonUtil<>();
-        this.gestor = this.agente.getGestor();
-        this.infMessageSubscription = new MessageSubscription();
+        this.myAgent_Organizador = (AgenteOrganizador) a;
     }
 
+    @Override
     protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
         // Eliminamos la suscripción del agente jugador
         String nombreAgente = cancel.getSender().getName();
 
         try {
-            this.subscription = gestor.getSubscripcion(nombreAgente);
+            this.subscription = this.myAgent_Organizador.getGestor().getSubscripcion(nombreAgente);
             this.mySubscriptionManager.deregister(this.subscription);
-        } catch (Exception e) {
-            this.infMessageSubscription.setMessage("Error al cancelar la subscripción para " + nombreAgente);
-            throw new FailureException(this.gsonUtil.encode(this.infMessageSubscription, MessageSubscription.class));
+        } catch (FailureException e) {
+            this.myAgent_Organizador.addMsgConsole("Error al cancelar la subscripción para " + nombreAgente);
         }
 
         // Mensaje de cancelación
         ACLMessage cancela = cancel.createReply();
-        this.agente.addMsgConsole("Subscripción cancelada en " + this.myAgent.getLocalName() + " para " + nombreAgente);
+        this.myAgent_Organizador.addMsgConsole("Subscripción cancelada en " + this.myAgent_Organizador.getLocalName() + " para " + nombreAgente);
         //agente.setMensaje(msgConsola);
         cancela.setPerformative(ACLMessage.INFORM);
-        cancela.setSender(this.myAgent.getAID());
-        cancela.setContent(this.gsonUtil.encode(this.infMessageSubscription, MessageSubscription.class));
+        cancela.setSender(this.myAgent_Organizador.getAID());
+
         return cancela;
     }
 
+    @Override
     protected ACLMessage handleSubscription(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
         String nombreAgente = subscription.getSender().getName();
 
         try {
             // Registra la suscripción si no hay una previa
-            if (!this.gestor.haySubscripcion(nombreAgente)) {
+            if (!this.myAgent_Organizador.getGestor().haySubscripcion(nombreAgente)) {
+                this.myAgent_Organizador.addMsgConsole("Subscripción creada en " + this.myAgent.getLocalName() + " para " + nombreAgente);
                 this.subscription = createSubscription(subscription);
                 this.mySubscriptionManager.register(this.subscription);
+            } else {
+                this.myAgent_Organizador.addMsgConsole("Subscripción NO creada en " + this.myAgent.getLocalName() + " para " + nombreAgente);
             }
         } catch (Exception e) {
-            this.agente.addMsgConsole("Error al registrar la subscripción en " + this.myAgent.getLocalName());
-            throw new RefuseException(this.gsonUtil.encode(this.infMessageSubscription, MessageSubscription.class));
+            this.myAgent_Organizador.addMsgConsole("Error al registrar la subscripción en " + this.myAgent_Organizador.getLocalName());
         }
 
         // Responde afirmativamente a la suscripción
         ACLMessage agree = subscription.createReply();
-        this.agente.addMsgConsole("Subscripción creada en " + this.myAgent.getLocalName() + " para " + nombreAgente);
-
         agree.setPerformative(ACLMessage.AGREE);
-        agree.setContent(this.gsonUtil.encode(this.infMessageSubscription, MessageSubscription.class));
+
         return agree;
     }
 }

@@ -5,24 +5,6 @@
  */
 package es.uja.ssmmaa.dots_and_boxes.agentes;
 
-import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.TIME_OUT;
-import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.ESPERA;
-import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponserPropose_Organizador;
-import es.uja.ssmmaa.dots_and_boxes.project.Constantes;
-import es.uja.ssmmaa.dots_and_boxes.tareas.TareaSubscripcionDF;
-import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
-import es.uja.ssmmaa.dots_and_boxes.interfaces.SubscripcionDF;
-import es.uja.ssmmaa.dots_and_boxes.interfaces.MessageInform;
-import es.uja.ssmmaa.dots_and_boxes.gui.ConsolaJFrame;
-import es.uja.ssmmaa.dots_and_boxes.interfaces.SendMessagesInform;
-import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendPropose_Organizador;
-import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizadorSub;
-import es.uja.ssmmaa.dots_and_boxes.tareas.TaskIniciatorSubscription_Organizador;
-import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponderSubscription_Organizador;
-import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendNotifications_Organizador;
-import es.uja.ssmmaa.dots_and_boxes.util.MensajeConsola;
-import es.uja.ssmmaa.dots_and_boxes.util.MessageSubscription;
-
 import es.uja.ssmmaa.ontologia.Vocabulario;
 import es.uja.ssmmaa.ontologia.Vocabulario.TipoJuego;
 import es.uja.ssmmaa.ontologia.juegoTablero.CompletarPartida;
@@ -30,7 +12,22 @@ import es.uja.ssmmaa.ontologia.juegoTablero.InfoJuego;
 import es.uja.ssmmaa.ontologia.juegoTablero.Juego;
 import es.uja.ssmmaa.ontologia.juegoTablero.Partida;
 import es.uja.ssmmaa.ontologia.juegoTablero.ProponerJuego;
-import es.uja.ssmmaa.ontologia.juegoTablero.SubInform;
+
+import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.TIME_OUT;
+import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.ESPERA;
+import es.uja.ssmmaa.dots_and_boxes.gui.ConsolaJFrame;
+import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizadorSub;
+import es.uja.ssmmaa.dots_and_boxes.interfaces.SendMessagesInform;
+import es.uja.ssmmaa.dots_and_boxes.interfaces.SubscripcionDF;
+import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponderSubscription_Organizador;
+import es.uja.ssmmaa.dots_and_boxes.tareas.TaskIniciatorSubscription_Organizador;
+import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendNotifications_Organizador;
+import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponserPropose_Organizador;
+import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendPropose_Organizador;
+import es.uja.ssmmaa.dots_and_boxes.tareas.TareaSubscripcionDF;
+import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
+import es.uja.ssmmaa.dots_and_boxes.util.MessageSubscription;
+import es.uja.ssmmaa.dots_and_boxes.util.MensajeConsola;
 
 import jade.content.ContentElement;
 import jade.content.ContentManager;
@@ -238,7 +235,8 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
                 msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
 
                 TaskIniciatorSubscription_Organizador task = new TaskIniciatorSubscription_Organizador(this, msg);
-
+                addBehaviour(task);
+                
                 lista.add(agente);
                 break;
         }
@@ -335,7 +333,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     /*
      * ========================================================================
      */
-    private void completarPartida(Partida partida, List listaJugadores) {
+    public void completarPartida(Partida partida, List listaJugadores) {
         // Contenido del mensaje representado en la ontología
         CompletarPartida completarPartida = new CompletarPartida();
         completarPartida.setPartida(partida);
@@ -363,7 +361,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         addBehaviour(task);
     }
 
-    private void proponerPartidaATablero(Juego juego, Vocabulario.Modo modo, InfoJuego infoJuego) {
+    public void proponerPartidaATablero(Juego juego, Vocabulario.Modo modo, InfoJuego infoJuego) {
         // Contenido del mensaje representado en la ontología
         ProponerJuego proponerJuego = new ProponerJuego();
         proponerJuego.setJuego(juego);
@@ -390,5 +388,9 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
 
         TaskSendPropose_Organizador task = new TaskSendPropose_Organizador(this, msg, proponerJuego);
         addBehaviour(task);
+    }
+
+    public void informarResultado() {
+
     }
 }
