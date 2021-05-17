@@ -6,8 +6,10 @@
 package es.uja.ssmmaa.dots_and_boxes.interfaces;
 
 import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
+import es.uja.ssmmaa.dots_and_boxes.util.Partida_Organizador;
 
 import jade.content.ContentManager;
+import jade.content.lang.Codec;
 import jade.content.onto.Ontology;
 import jade.core.Agent;
 
@@ -17,12 +19,15 @@ import jade.core.Agent;
  */
 public interface TasksOrganizador {
 
+    public ContentManager getManager();
+
     public Ontology getOntology();
 
-    public ContentManager getManager();
+    public Codec getCodec();
 
     public GestorSubscripciones getGestor();
 
     public void addMsgConsole(String msg);
-
+    
+    public Partida_Organizador getPartida(String idPartida);
 }

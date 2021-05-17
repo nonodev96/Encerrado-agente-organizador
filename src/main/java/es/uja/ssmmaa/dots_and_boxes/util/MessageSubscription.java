@@ -11,25 +11,28 @@ package es.uja.ssmmaa.dots_and_boxes.util;
  */
 public class MessageSubscription {
 
-    String message;
+    private String receiver;
+    private String content;
 
-    public MessageSubscription() {
-        this.message = "";
+    public MessageSubscription(String receiver, String content) {
+        this.receiver = receiver;
+        this.content = content;
     }
 
-    public String getMessage() {
-        return message;
+    public String getReceiver() {
+        return receiver;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setReceiver(String receiver) {
+        this.receiver = receiver;
     }
 
-    @Override
-    public String toString() {
-        return "MessageSubscription{"
-                + "message=" + message
-                + '}';
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 
 }

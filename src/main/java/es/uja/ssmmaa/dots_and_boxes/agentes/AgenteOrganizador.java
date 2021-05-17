@@ -17,17 +17,17 @@ import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.TIME_OUT;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.ESPERA;
 import es.uja.ssmmaa.dots_and_boxes.gui.ConsolaJFrame;
 import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizadorSub;
-import es.uja.ssmmaa.dots_and_boxes.interfaces.SendMessagesInform;
 import es.uja.ssmmaa.dots_and_boxes.interfaces.SubscripcionDF;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponderSubscription_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskIniciatorSubscription_Organizador;
-import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendNotifications_Organizador;
+import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendNotifications_Organizador_InformarResultado;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponserPropose_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendPropose_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TareaSubscripcionDF;
 import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
-import es.uja.ssmmaa.dots_and_boxes.util.MessageSubscription;
-import es.uja.ssmmaa.dots_and_boxes.util.MensajeConsola;
+import es.uja.ssmmaa.dots_and_boxes.util.Partida_Organizador;
+import es.uja.ssmmaa.ontologia.OntoEncerrado;
+import es.uja.ssmmaa.ontologia.encerrado.Encerrado;
 
 import jade.content.ContentElement;
 import jade.content.ContentManager;
@@ -55,6 +55,8 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * <
@@ -82,14 +84,14 @@ import java.util.Map;
  *
  * @author nono_
  */
-public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrganizadorSub, SendMessagesInform<MessageSubscription> {
+public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrganizadorSub {
 
     private GestorSubscripciones gestor;
 
     // Para la generación y obtención del contenido de los mensages
     private ContentManager manager;
     // El lenguaje utilizado por el agente para la comunicación es SL 
-    private final Codec codec = new SLCodec();
+    private Codec codec;
     // Las ontología que utilizará el agente
     private Ontology ontology;
     // Agente consola
@@ -100,16 +102,12 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     public AID agente_monitor_AID;
     private Map<String, Deque<AID>> agentesConocidos;
     private Map<String, TaskIniciatorSubscription_Organizador> subActivas;
-
-    private ArrayList<MessageSubscription> messagesInformToProcess;
-    private ArrayList<MensajeConsola> messagesConsoleToProcess;
+    private Map<String, Partida_Organizador> partidasMap;
 
     public AgenteOrganizador() {
         this.agentesConocidos = new HashMap<>();
         this.subActivas = new HashMap<>();
-
-        this.messagesInformToProcess = new ArrayList<>();
-        this.messagesConsoleToProcess = new ArrayList<>();
+        this.partidasMap = new HashMap<>();
     }
 
     @Override
@@ -160,6 +158,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     public void init() {
         //Registro de la Ontología
         this.manager = new ContentManager();
+        this.codec = new SLCodec();
         try {
             this.ontology = Vocabulario.getOntology(TipoJuego.ENCERRADO);
             this.manager = (ContentManager) getContentManager();
@@ -167,7 +166,6 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
             this.manager.registerOntology(this.ontology);
         } catch (BeanOntologyException ex) {
             this.addMsgConsole("Error al registrar la ontología \n" + ex);
-//            consola.addMensaje("Error al registrar la ontología \n" + ex);
             this.doDelete();
             MicroRuntime.stopJADE();
         }
@@ -180,9 +178,8 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         template.addServices(templateSd);
         addBehaviour(new TareaSubscripcionDF(this, template));
 
-        // Plantilla del mensaje de suscripción
-        MessageTemplate plantilla;
-        plantilla = MessageTemplate.and(
+        // Plantilla para mensajes de FIPA_SUBSCRIBE
+        MessageTemplate template_SUBS = MessageTemplate.and(
                 MessageTemplate.not(
                         MessageTemplate.or(
                                 MessageTemplate.MatchSender(this.getDefaultDF()),
@@ -191,7 +188,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
                 ),
                 MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE)
         );
-        addBehaviour(new TaskResponderSubscription_Organizador(this, plantilla, this.gestor));
+        addBehaviour(new TaskResponderSubscription_Organizador(this, template_SUBS, this.gestor));
 
         // Plantilla para responder mensajes FIPA_PROPOSE
         MessageTemplate template_RP = MessageTemplate.and(
@@ -201,8 +198,8 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         addBehaviour(new TaskResponserPropose_Organizador(this, template_RP));
 
         // Tarea de envio de mensajes inform a los subscriptores
-        addBehaviour(new TaskSendNotifications_Organizador(this, ESPERA));
-
+        // TODO
+        //addBehaviour(new TaskSendNotifications_Organizador(this, idPartida));
     }
 
     @Override
@@ -236,7 +233,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
 
                 TaskIniciatorSubscription_Organizador task = new TaskIniciatorSubscription_Organizador(this, msg);
                 addBehaviour(task);
-                
+
                 lista.add(agente);
                 break;
         }
@@ -277,13 +274,18 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     }
 
     @Override
+    public ContentManager getManager() {
+        return this.manager;
+    }
+
+    @Override
     public Ontology getOntology() {
         return this.ontology;
     }
 
     @Override
-    public ContentManager getManager() {
-        return this.manager;
+    public Codec getCodec() {
+        return codec;
     }
 
     /* 
@@ -293,11 +295,6 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     @Override
     public void addMsgConsole(String msg) {
         this.UI_consola.addMensaje(msg);
-    }
-
-    @Override
-    public void addMessagesInform(MessageSubscription message) {
-        this.messagesInformToProcess.add(message);
     }
 
     // =============
@@ -320,14 +317,18 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         }
     }
 
-    @Override
-    public void setResultado(AID agenteOrganizador, ContentElement resultado) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Map<String, Partida_Organizador> getPartidas() {
+        return partidasMap;
     }
 
     @Override
-    public List<MessageSubscription> getMessagesInform() {
-        return messagesInformToProcess;
+    public Partida_Organizador getPartida(String idPartida) {
+        return this.partidasMap.getOrDefault(idPartida, null);
+    }
+
+    @Override
+    public void setResultado(AID agenteOrganizador, ContentElement resultado) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     /*

@@ -6,6 +6,19 @@
 package es.uja.ssmmaa.dots_and_boxes.tareas;
 
 import es.uja.ssmmaa.dots_and_boxes.agentes.AgenteOrganizador;
+import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.MAX_JUGADORES_PARTIDA;
+import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.MAX_PARTIDAS;
+import es.uja.ssmmaa.dots_and_boxes.util.Partida_Organizador;
+import es.uja.ssmmaa.ontologia.Vocabulario;
+import es.uja.ssmmaa.ontologia.Vocabulario.Modo;
+import es.uja.ssmmaa.ontologia.Vocabulario.TipoJuego;
+import es.uja.ssmmaa.ontologia.juegoTablero.AgenteJuego;
+import es.uja.ssmmaa.ontologia.juegoTablero.CompletarJuego;
+import es.uja.ssmmaa.ontologia.juegoTablero.InfoJuego;
+import es.uja.ssmmaa.ontologia.juegoTablero.Juego;
+import es.uja.ssmmaa.ontologia.juegoTablero.JuegoAceptado;
+import es.uja.ssmmaa.ontologia.juegoTablero.Justificacion;
+import es.uja.ssmmaa.ontologia.juegoTablero.Monitor;
 
 import jade.content.Concept;
 import jade.content.lang.Codec;
@@ -17,6 +30,8 @@ import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.ProposeResponder;
+import jade.util.leap.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,35 +46,81 @@ public class TaskResponserPropose_Organizador extends ProposeResponder {
     public TaskResponserPropose_Organizador(Agent a, MessageTemplate mt) {
         super(a, mt);
         this.myAgent_organizador = (AgenteOrganizador) a;
-        this.myAgent_organizador.addMsgConsole("        --> ProposeResponder(Agent a, MessageTemplate mt)");
+        this.myAgent_organizador.addMsgConsole("--> ProposeResponder(Agent a, MessageTemplate mt)");
     }
 
     @Override
     protected ACLMessage prepareResponse(ACLMessage propose) throws NotUnderstoodException, RefuseException {
-        System.out.println("        --> prepareResponse");
-        Action a;
-
+        this.myAgent_organizador.addMsgConsole("    --> prepareResponse");
+        ACLMessage reply = propose.createReply();
+        CompletarJuego completarJuego = null;
         try {
-            a = (Action) this.myAgent_organizador.getManager().extractContent(propose);
-            Concept c = a.getAction();
-            System.out.println("C : " + c.toString());
+            Action action = (Action) this.myAgent_organizador.getManager().extractContent(propose);
+            completarJuego = (CompletarJuego) action.getAction();
         } catch (Codec.CodecException | OntologyException ex) {
-            Logger.getLogger(TaskResponserPropose_Organizador.class.getName()).log(Level.SEVERE, null, ex);
+            this.myAgent_organizador.addMsgConsole("Error al extraer la información de CompletarJuego de monitor");
         }
 
-        ACLMessage reply = response_completar_juego(propose);
+        InfoJuego infoJuego = completarJuego.getAgenteJuego();
+        // ================
+
+        Juego juego = completarJuego.getJuego();
+        String idJuego = juego.getIdJuego();
+        TipoJuego tipoJuego = juego.getTipoJuego();
+        List listaJugadores = completarJuego.getListaJugadores();
+        Modo modo = completarJuego.getModo();
+
+        // ================
+        int errores = 0;
+        Justificacion justificacion = new Justificacion();
+        justificacion.setJuego(juego);
+
+        if (tipoJuego != TipoJuego.ENCERRADO) {
+            justificacion.setDetalle(Vocabulario.Motivo.TIPO_JUEGO_NO_IMPLEMENTADO);
+        }
+        if (modo != Modo.UNICO) {
+            justificacion.setDetalle(Vocabulario.Motivo.TIPO_JUEGO_NO_IMPLEMENTADO);
+        }
+        if (listaJugadores.size() > MAX_JUGADORES_PARTIDA) {
+            justificacion.setDetalle(Vocabulario.Motivo.PARTICIPACION_EN_JUEGOS_SUPERADA);
+        }
+
+        Map<String, Partida_Organizador> partidas = this.myAgent_organizador.getPartidas();
+        if (partidas.size() > MAX_PARTIDAS) {
+            justificacion.setDetalle(Vocabulario.Motivo.SUPERADO_LIMITE_PARTIDAS);
+        }
+        if (partidas.get(idJuego) != null) {
+            justificacion.setDetalle(Vocabulario.Motivo.JUEGOS_ACTIVOS_SUPERADOS);
+        }
+
+        if (errores > 0) {
+            reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
+            try {
+                this.myAgent_organizador.getManager().fillContent(reply, justificacion);
+            } catch (Codec.CodecException | OntologyException ex) {
+                this.myAgent_organizador.addMsgConsole("Error al justificar el motivo del fallo al completar un juego");
+            }
+
+        } else {
+            JuegoAceptado juegoAceptado = new JuegoAceptado();
+            // TODO AgenteJuego es abstracto e implementa:
+            //      Monitor|Organizador|Jugador
+            Monitor agenteJuego = new Monitor();
+            agenteJuego.setAgenteMonitor(propose.getSender());
+            agenteJuego.setNombre(propose.getSender().getName());
+
+            juegoAceptado.setJuego(juego);
+            juegoAceptado.setAgenteJuego(agenteJuego);
+
+            reply.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+            try {
+                this.myAgent_organizador.getManager().fillContent(reply, juegoAceptado);
+            } catch (Codec.CodecException | OntologyException ex) {
+                this.myAgent_organizador.addMsgConsole("Error al justificar el motivo del fallo al completar un juego");
+            }
+        }
 
         return reply;
-    }
-
-    /**
-     * TODO
-     *
-     * @param propose
-     * @return
-     */
-    private ACLMessage response_completar_juego(ACLMessage propose) {
-        return propose.createReply();
     }
 
 }
