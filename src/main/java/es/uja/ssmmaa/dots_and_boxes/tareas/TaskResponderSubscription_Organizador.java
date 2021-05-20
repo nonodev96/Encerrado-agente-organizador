@@ -41,6 +41,7 @@ public class TaskResponderSubscription_Organizador extends SubscriptionResponder
         this.myLocalName = this.myAgent_Organizador.getLocalName();
     }
 
+
     @Override
     protected ACLMessage handleSubscription(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
         String nombreAgente = subscription.getSender().getName();

@@ -188,7 +188,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
                 ),
                 MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE)
         );
-        addBehaviour(new TaskResponderSubscription_Organizador(this, template_SUBS, this.gestor));
+        addBehaviour(new TaskResponderSubscription_Organizador(this, template_SUBS));
 
         // Plantilla para responder mensajes FIPA_PROPOSE
         MessageTemplate template_RP = MessageTemplate.and(
@@ -204,9 +204,11 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
 
     @Override
     public void addAgent(AID agente, Vocabulario.TipoJuego juego, Vocabulario.TipoServicio servicio) {
+        this.addMsgConsole("=============================================");
         this.addMsgConsole("addAgent  AgentID: " + agente.getLocalName());
         this.addMsgConsole("addAgent    juego: " + juego.name());
         this.addMsgConsole("addAgent Servicio: " + servicio.name());
+        this.addMsgConsole("=============================================");
 
         Deque<AID> lista = this.agentesConocidos.getOrDefault(servicio.name() + juego.name(), new LinkedList<>());
 
@@ -391,7 +393,14 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         addBehaviour(task);
     }
 
-    public void informarResultado() {
+    /** <
+     * Tu modificas tu partida con getPartida(idPartida)
+     * Modificas lo que pase y llamas a este método y se envia el mensaje.
+     * >
+     * @param idPartida
+     */
+    public void informar_ClasificacionJuego_o_IncidenciaJuego(String idPartida) {
 
+        addBehaviour(new TaskSendNotifications_Organizador_InformarResultado(this, idPartida));
     }
 }

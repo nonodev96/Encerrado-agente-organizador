@@ -19,6 +19,7 @@ import es.uja.ssmmaa.ontologia.juegoTablero.Juego;
 import es.uja.ssmmaa.ontologia.juegoTablero.JuegoAceptado;
 import es.uja.ssmmaa.ontologia.juegoTablero.Justificacion;
 import es.uja.ssmmaa.ontologia.juegoTablero.Monitor;
+import es.uja.ssmmaa.ontologia.juegoTablero.Organizador;
 
 import jade.content.Concept;
 import jade.content.lang.Codec;
@@ -103,14 +104,20 @@ public class TaskResponserPropose_Organizador extends ProposeResponder {
 
         } else {
             JuegoAceptado juegoAceptado = new JuegoAceptado();
+            
             // TODO AgenteJuego es abstracto e implementa:
             //      Monitor|Organizador|Jugador
-            Monitor agenteJuego = new Monitor();
-            agenteJuego.setAgenteMonitor(propose.getSender());
-            agenteJuego.setNombre(propose.getSender().getName());
+//            Monitor agenteJuego_m = new Monitor();
+//            agenteJuego_m.setAgenteMonitor(propose.getSender());
+//            agenteJuego_m.setNombre(propose.getSender().getName());
+
+            Organizador agenteJuego_o = new Organizador();
+            agenteJuego_o.setAgenteOrganizador(this.myAgent_organizador.getAID());
+            // DUDAS
+            agenteJuego_o.setNombre(this.myAgent_organizador.getName());
 
             juegoAceptado.setJuego(juego);
-            juegoAceptado.setAgenteJuego(agenteJuego);
+            juegoAceptado.setAgenteJuego(agenteJuego_o);
 
             reply.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
             try {
