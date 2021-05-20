@@ -55,8 +55,6 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * <
@@ -188,7 +186,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
                 ),
                 MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE)
         );
-        addBehaviour(new TaskResponderSubscription_Organizador(this, template_SUBS));
+        addBehaviour(new TaskResponderSubscription_Organizador(this, template_SUBS, this.getGestor()));
 
         // Plantilla para responder mensajes FIPA_PROPOSE
         MessageTemplate template_RP = MessageTemplate.and(
@@ -296,6 +294,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
      */
     @Override
     public void addMsgConsole(String msg) {
+        System.out.println( msg);
         this.UI_consola.addMensaje(msg);
     }
 

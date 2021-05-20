@@ -55,6 +55,7 @@ public class TaskResponserPropose_Organizador extends ProposeResponder {
         this.myAgent_organizador.addMsgConsole("    --> prepareResponse");
         ACLMessage reply = propose.createReply();
         CompletarJuego completarJuego = null;
+        
         try {
             Action action = (Action) this.myAgent_organizador.getManager().extractContent(propose);
             completarJuego = (CompletarJuego) action.getAction();
@@ -78,12 +79,15 @@ public class TaskResponserPropose_Organizador extends ProposeResponder {
 
         if (tipoJuego != TipoJuego.ENCERRADO) {
             justificacion.setDetalle(Vocabulario.Motivo.TIPO_JUEGO_NO_IMPLEMENTADO);
+            errores++;
         }
         if (modo != Modo.UNICO) {
             justificacion.setDetalle(Vocabulario.Motivo.TIPO_JUEGO_NO_IMPLEMENTADO);
+            errores++;
         }
         if (listaJugadores.size() > MAX_JUGADORES_PARTIDA) {
             justificacion.setDetalle(Vocabulario.Motivo.PARTICIPACION_EN_JUEGOS_SUPERADA);
+            errores++;
         }
 
         Map<String, Partida_Organizador> partidas = this.myAgent_organizador.getPartidas();
@@ -94,7 +98,7 @@ public class TaskResponserPropose_Organizador extends ProposeResponder {
             justificacion.setDetalle(Vocabulario.Motivo.JUEGOS_ACTIVOS_SUPERADOS);
         }
 
-        if (errores > 0) {
+        if (errores != 0) {
             reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
             try {
                 this.myAgent_organizador.getManager().fillContent(reply, justificacion);

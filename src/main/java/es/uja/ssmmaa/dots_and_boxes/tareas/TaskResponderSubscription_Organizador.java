@@ -30,13 +30,12 @@ import java.util.logging.Logger;
  */
 public class TaskResponderSubscription_Organizador extends SubscriptionResponder {
 
-    private Subscription subscription;
     // Interfaz
     private final AgenteOrganizador myAgent_Organizador;
     private final String myLocalName;
 
-    public TaskResponderSubscription_Organizador(Agent a, MessageTemplate mt) {
-        super(a, mt);
+    public TaskResponderSubscription_Organizador(Agent a, MessageTemplate mt, SubscriptionManager sm) {
+        super(a, mt, sm);
         this.myAgent_Organizador = (AgenteOrganizador) a;
         this.myLocalName = this.myAgent_Organizador.getLocalName();
     }
@@ -47,6 +46,11 @@ public class TaskResponderSubscription_Organizador extends SubscriptionResponder
         String nombreAgente = subscription.getSender().getName();
         ACLMessage reply = subscription.createReply();
         Justificacion justificacion = new Justificacion();
+        Juego juego = new Juego();
+        // DUDA Lo dejamos por defecto?
+        juego.setIdJuego("");
+        juego.setTipoJuego(Vocabulario.TipoJuego.ENCERRADO);
+        justificacion.setJuego(juego);
 
         // Responde afirmativamente a la suscripción siempre
         reply.setPerformative(ACLMessage.AGREE);
@@ -56,19 +60,17 @@ public class TaskResponderSubscription_Organizador extends SubscriptionResponder
         // Registra la suscripción si no hay una previa
         if (!this.myAgent_Organizador.getGestor().haySubscripcion(nombreAgente)) {
             this.myAgent_Organizador.addMsgConsole("Subscripción creada en " + myLocalName + " para " + nombreAgente);
-            this.subscription = createSubscription(subscription);
-            this.mySubscriptionManager.register(this.subscription);
+            Subscription sub = createSubscription(subscription);
+            this.mySubscriptionManager.register(sub);
 
             justificacion.setDetalle(Vocabulario.Motivo.SUBSCRIPCION_ACEPTADA);
-        } else {
-            this.myAgent_Organizador.addMsgConsole("Subscripción NO creada en " + myLocalName + " para " + nombreAgente);
+        } 
 
-            justificacion.setDetalle(Vocabulario.Motivo.ERROR_SUBSCRIPCION);
-        }
 
         try {
             this.myAgent_Organizador.getManager().fillContent(reply, justificacion);
         } catch (Codec.CodecException | OntologyException ex) {
+//            ex.printStackTrace();
             this.myAgent_Organizador.addMsgConsole("Error al registrar la subscripción en " + myLocalName);
         }
         return reply;
@@ -81,9 +83,9 @@ public class TaskResponderSubscription_Organizador extends SubscriptionResponder
         String nombreAgente = cancel.getSender().getName();
         Justificacion justificacion = new Justificacion();
 
-        this.subscription = this.myAgent_Organizador.getGestor().getSubscripcion(nombreAgente);
+        Subscription sub = this.myAgent_Organizador.getGestor().getSubscripcion(nombreAgente);
         try {
-            this.mySubscriptionManager.deregister(this.subscription);
+            this.mySubscriptionManager.deregister(sub);
         } catch (FailureException e) {
             this.myAgent_Organizador.addMsgConsole("Error al cancelar la subscripción para " + nombreAgente);
             justificacion.setDetalle(Vocabulario.Motivo.ERROR_CANCELACION);

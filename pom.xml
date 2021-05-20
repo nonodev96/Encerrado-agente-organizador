@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>es.uja.ssmmaa</groupId>
     <artifactId>AgenteOrganizador</artifactId>
-    <version>1.0</version>
+    <version>1.2</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -40,7 +40,7 @@
         <dependency>
             <groupId>com.github.PedroJSanchez</groupId> 
             <artifactId>OntoJuegos</artifactId> 
-            <version>1.0</version> 
+            <version>v1.1</version> 
         </dependency>
         
     </dependencies>
