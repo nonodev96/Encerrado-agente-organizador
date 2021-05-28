@@ -106,7 +106,7 @@ public class TaskIniciatorSubscription_Organizador extends SubscriptionInitiator
                 agente.addMsgConsole("INCIDENCIA\n" + (IncidenciaJuego) contenido);
             }
 
-            agente.setResultado(inform.getSender(), contenido);
+//            agente.setResultado(inform.getSender(), contenido);
         } catch (Codec.CodecException | OntologyException ex) {
             agente.addMsgConsole("Error en el formato del mensaje del agente " + inform.getSender().getLocalName());
         }

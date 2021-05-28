@@ -6,7 +6,7 @@
 package es.uja.ssmmaa.dots_and_boxes.interfaces;
 
 import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
-import es.uja.ssmmaa.dots_and_boxes.util.Partida_Organizador;
+import es.uja.ssmmaa.dots_and_boxes.project.Partida_Organizador;
 
 import jade.content.ContentManager;
 import jade.content.lang.Codec;

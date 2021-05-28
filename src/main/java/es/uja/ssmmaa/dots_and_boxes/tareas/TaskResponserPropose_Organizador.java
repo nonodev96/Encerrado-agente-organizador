@@ -8,7 +8,7 @@ package es.uja.ssmmaa.dots_and_boxes.tareas;
 import es.uja.ssmmaa.dots_and_boxes.agentes.AgenteOrganizador;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.MAX_JUGADORES_PARTIDA;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.MAX_PARTIDAS;
-import es.uja.ssmmaa.dots_and_boxes.util.Partida_Organizador;
+import es.uja.ssmmaa.dots_and_boxes.project.Partida_Organizador;
 import es.uja.ssmmaa.ontologia.Vocabulario;
 import es.uja.ssmmaa.ontologia.Vocabulario.Modo;
 import es.uja.ssmmaa.ontologia.Vocabulario.TipoJuego;

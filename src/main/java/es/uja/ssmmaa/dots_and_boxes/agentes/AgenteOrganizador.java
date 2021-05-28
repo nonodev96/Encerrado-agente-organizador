@@ -13,8 +13,7 @@ import es.uja.ssmmaa.ontologia.juegoTablero.Juego;
 import es.uja.ssmmaa.ontologia.juegoTablero.Partida;
 import es.uja.ssmmaa.ontologia.juegoTablero.ProponerJuego;
 
-import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.TIME_OUT;
-import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.ESPERA;
+import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.TIME_OUT_1;
 import es.uja.ssmmaa.dots_and_boxes.gui.ConsolaJFrame;
 import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizadorSub;
 import es.uja.ssmmaa.dots_and_boxes.interfaces.SubscripcionDF;
@@ -25,11 +24,8 @@ import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponserPropose_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendPropose_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TareaSubscripcionDF;
 import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
-import es.uja.ssmmaa.dots_and_boxes.util.Partida_Organizador;
-import es.uja.ssmmaa.ontologia.OntoEncerrado;
-import es.uja.ssmmaa.ontologia.encerrado.Encerrado;
+import es.uja.ssmmaa.dots_and_boxes.project.Partida_Organizador;
 
-import jade.content.ContentElement;
 import jade.content.ContentManager;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
@@ -48,7 +44,7 @@ import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.SubscriptionInitiator;
-import java.util.List;
+import jade.util.leap.List;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Deque;
@@ -229,7 +225,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
                 msg.setOntology(ontology.getName());
                 // AID Tablero
                 msg.addReceiver(agente);
-                msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
+                msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT_1));
 
                 TaskIniciatorSubscription_Organizador task = new TaskIniciatorSubscription_Organizador(this, msg);
                 addBehaviour(task);
@@ -327,20 +323,15 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         return this.partidasMap.getOrDefault(idPartida, null);
     }
 
-    @Override
-    public void setResultado(AID agenteOrganizador, ContentElement resultado) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
     /*
      * ========================================================================
      */
-    public void completarPartida(Partida partida, List listaJugadores) {
+    public void Propose_CompletarPartida(Partida partida, List listaJugadores) {
         // Contenido del mensaje representado en la ontología
         CompletarPartida completarPartida = new CompletarPartida();
         completarPartida.setPartida(partida);
         // TODO
-//        completarPartida.setListaJugadores(listaJugadores);
+        completarPartida.setListaJugadores(listaJugadores);
 
         // Creamos el mensaje a enviar
         ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
@@ -348,7 +339,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         msg.setSender(getAID());
         msg.setLanguage(codec.getName());
         msg.setOntology(ontology.getName());
-        msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
+        msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT_1));
 
         Action ac = new Action(this.getAID(), completarPartida);
 
@@ -363,7 +354,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         addBehaviour(task);
     }
 
-    public void proponerPartidaATablero(Juego juego, Vocabulario.Modo modo, InfoJuego infoJuego) {
+    public void Propose_PartidaATablero(Juego juego, Vocabulario.Modo modo, InfoJuego infoJuego) {
         // Contenido del mensaje representado en la ontología
         ProponerJuego proponerJuego = new ProponerJuego();
         proponerJuego.setJuego(juego);
@@ -377,7 +368,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
 
         msg.setLanguage(this.codec.getName());
         msg.setOntology(this.ontology.getName());
-        msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
+        msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT_1));
 
         Action ac = new Action(this.getAID(), proponerJuego);
 
@@ -398,7 +389,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
      * >
      * @param idPartida
      */
-    public void informar_ClasificacionJuego_o_IncidenciaJuego(String idPartida) {
+    public void Inform_ClasificacionJuego_o_IncidenciaJuego(String idPartida) {
 
         addBehaviour(new TaskSendNotifications_Organizador_InformarResultado(this, idPartida));
     }

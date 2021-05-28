@@ -20,6 +20,6 @@ public interface TasksOrganizadorSub extends TasksOrganizador {
     public void cancelSubscription(AID agente);
 
     // ?
-    public void setResultado(AID agenteOrganizador, ContentElement resultado);
+//    public void setResultado(AID agenteOrganizador, ContentElement resultado);
 
 }

@@ -15,7 +15,8 @@ public interface Constantes {
 
     public static final Random aleatorio = new Random();
     public static final long ESPERA = 1000; // 1 segundo
-    public static final long TIME_OUT = 2000; // 2 segundos;
+    public static final long TIME_OUT_1 = 000; // 1 segundos;
+    public static final long TIME_OUT_2 = 2000; // 2 segundos;
     public static final int NO_ENCONTRADO = -1;
     public static final int ACEPTAR = 85; // 85% de aceptación para la operación 
     public static final int PRIMERO = 0;

@@ -7,21 +7,17 @@ package es.uja.ssmmaa.dots_and_boxes.tareas;
 
 import es.uja.ssmmaa.dots_and_boxes.agentes.AgenteOrganizador;
 import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
-import es.uja.ssmmaa.dots_and_boxes.util.MessageSubscription;
-import es.uja.ssmmaa.dots_and_boxes.util.Partida_Organizador;
+import es.uja.ssmmaa.dots_and_boxes.project.Partida_Organizador;
 import es.uja.ssmmaa.ontologia.juegoTablero.ClasificacionJuego;
 import es.uja.ssmmaa.ontologia.juegoTablero.IncidenciaJuego;
-import es.uja.ssmmaa.ontologia.juegoTablero.SubInform;
-import jade.content.lang.Codec;
-import jade.content.onto.OntologyException;
-import jade.core.AID;
 
 import jade.proto.SubscriptionResponder.Subscription;
-import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
-import jade.core.Agent;
+import jade.content.onto.OntologyException;
+import jade.content.lang.Codec;
 import jade.core.behaviours.OneShotBehaviour;
-import java.util.List;
+import jade.core.Agent;
+import jade.core.AID;
 
 /**
  *
