@@ -25,5 +25,7 @@ public class Partida_Organizador {
     public List listaJugadores;
     
     public int maxRondas;
+    
+    public int ronda;
 
 }

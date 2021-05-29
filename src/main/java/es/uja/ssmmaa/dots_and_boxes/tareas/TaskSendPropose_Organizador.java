@@ -6,6 +6,9 @@
 package es.uja.ssmmaa.dots_and_boxes.tareas;
 
 import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizador;
+import es.uja.ssmmaa.ontologia.Vocabulario.Motivo;
+import es.uja.ssmmaa.ontologia.juegoTablero.AgenteJuego;
+import es.uja.ssmmaa.ontologia.juegoTablero.Juego;
 import es.uja.ssmmaa.ontologia.juegoTablero.JuegoAceptado;
 import es.uja.ssmmaa.ontologia.juegoTablero.Justificacion;
 
@@ -24,9 +27,7 @@ import jade.core.Agent;
 import jade.core.AID;
 
 /**
- * <
  *
- * >
  * @author nono_
  */
 public class TaskSendPropose_Organizador extends ProposeInitiator {
@@ -64,7 +65,9 @@ public class TaskSendPropose_Organizador extends ProposeInitiator {
                         // =========================
                         if (respuesta instanceof JuegoAceptado) {
                             JuegoAceptado juegoAceptado = (JuegoAceptado) respuesta;
-                            this.agente.addMsgConsole("Juego aceptado " + juegoAceptado.getJuego().getTipoJuego().name());
+                            this.agente.addMsgConsole("Juego aceptado " + juegoAceptado);
+
+                            process_JuegoAceptado(juegoAceptado);
                         }
                         break;
                     case REJECT_PROPOSAL:
@@ -73,7 +76,9 @@ public class TaskSendPropose_Organizador extends ProposeInitiator {
                         // =========================
                         if (respuesta instanceof Justificacion) {
                             Justificacion justificacion = (Justificacion) respuesta;
-                            this.agente.addMsgConsole("justificacion " + justificacion.getDetalle().name());
+                            this.agente.addMsgConsole("justificacion " + justificacion);
+
+                            process_Justificacion(justificacion);
                         }
                         break;
                     default:
@@ -83,6 +88,17 @@ public class TaskSendPropose_Organizador extends ProposeInitiator {
                         + agenteJuego.getLocalName() + "\n" + msg + "\n" + ex);
             }
         }
+    }
+
+    private void process_JuegoAceptado(JuegoAceptado juegoAceptado) {
+        AgenteJuego agenteJuego = juegoAceptado.getAgenteJuego();
+        Juego juego = juegoAceptado.getJuego();
+
+    }
+
+    private void process_Justificacion(Justificacion justificacion) {
+       Motivo motivo = justificacion.getDetalle();
+       justificacion.getJuego();
     }
 
 }
