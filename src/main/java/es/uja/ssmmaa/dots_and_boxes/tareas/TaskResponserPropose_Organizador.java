@@ -8,10 +8,12 @@ package es.uja.ssmmaa.dots_and_boxes.tareas;
 import es.uja.ssmmaa.dots_and_boxes.agentes.AgenteOrganizador;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.MAX_JUGADORES_PARTIDA;
 import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.MAX_PARTIDAS;
+import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.MY_GAME;
 import es.uja.ssmmaa.dots_and_boxes.project.Partida_Organizador;
 import es.uja.ssmmaa.ontologia.Vocabulario;
 import es.uja.ssmmaa.ontologia.Vocabulario.Modo;
 import es.uja.ssmmaa.ontologia.Vocabulario.TipoJuego;
+import es.uja.ssmmaa.ontologia.encerrado.Encerrado;
 import es.uja.ssmmaa.ontologia.juegoTablero.AgenteJuego;
 import es.uja.ssmmaa.ontologia.juegoTablero.CompletarJuego;
 import es.uja.ssmmaa.ontologia.juegoTablero.InfoJuego;
@@ -20,6 +22,7 @@ import es.uja.ssmmaa.ontologia.juegoTablero.JuegoAceptado;
 import es.uja.ssmmaa.ontologia.juegoTablero.Justificacion;
 import es.uja.ssmmaa.ontologia.juegoTablero.Monitor;
 import es.uja.ssmmaa.ontologia.juegoTablero.Organizador;
+import es.uja.ssmmaa.ontologia.juegoTablero.Partida;
 
 import jade.content.Concept;
 import jade.content.lang.Codec;
@@ -43,28 +46,46 @@ import java.util.logging.Logger;
 public class TaskResponserPropose_Organizador extends ProposeResponder {
 
     private final AgenteOrganizador myAgent_organizador;
+    private int idPartida;
 
     public TaskResponserPropose_Organizador(Agent a, MessageTemplate mt) {
         super(a, mt);
         this.myAgent_organizador = (AgenteOrganizador) a;
+        this.idPartida = 0;
         this.myAgent_organizador.addMsgConsole("--> ProposeResponder(Agent a, MessageTemplate mt)");
     }
 
+    /**
+     * <pre>
+     * Tan solo le llega una proposición del monitor con el objeto de
+     * "Completar juego"
+     * </pre>
+     *
+     * @param propose
+     * @return
+     * @throws NotUnderstoodException
+     * @throws RefuseException
+     */
     @Override
     protected ACLMessage prepareResponse(ACLMessage propose) throws NotUnderstoodException, RefuseException {
-        this.myAgent_organizador.addMsgConsole("    --> prepareResponse");
+        this.myAgent_organizador.addMsgConsole("    --> prepareResponse CompletarJuego ");
         ACLMessage reply = propose.createReply();
-        CompletarJuego completarJuego = null;
-        
+        CompletarJuego completarJuego = new CompletarJuego();
+        Action action = null;
         try {
-            Action action = (Action) this.myAgent_organizador.getManager().extractContent(propose);
-            completarJuego = (CompletarJuego) action.getAction();
+            action = (Action) this.myAgent_organizador.getManager().extractContent(propose);
         } catch (Codec.CodecException | OntologyException ex) {
             this.myAgent_organizador.addMsgConsole("Error al extraer la información de CompletarJuego de monitor");
+            this.myAgent_organizador.addMsgConsole(ex.toString());
+        }
+        if (action == null) {
+            throw new Error("");
         }
 
-        InfoJuego infoJuego = completarJuego.getAgenteJuego();
+        completarJuego = (CompletarJuego) action.getAction();
+
         // ================
+        InfoJuego infoJuego = (InfoJuego) completarJuego.getAgenteJuego();
 
         Juego juego = completarJuego.getJuego();
         String idJuego = juego.getIdJuego();
@@ -77,25 +98,32 @@ public class TaskResponserPropose_Organizador extends ProposeResponder {
         Justificacion justificacion = new Justificacion();
         justificacion.setJuego(juego);
 
-        if (tipoJuego != TipoJuego.ENCERRADO) {
+        if (tipoJuego != MY_GAME) {
             justificacion.setDetalle(Vocabulario.Motivo.TIPO_JUEGO_NO_IMPLEMENTADO);
+            this.myAgent_organizador.addMsgConsole("Error TIPO_JUEGO_NO_IMPLEMENTADO juego");
             errores++;
         }
         if (modo != Modo.UNICO) {
             justificacion.setDetalle(Vocabulario.Motivo.TIPO_JUEGO_NO_IMPLEMENTADO);
+            this.myAgent_organizador.addMsgConsole("Error TIPO_JUEGO_NO_IMPLEMENTADO modo");
             errores++;
         }
         if (listaJugadores.size() > MAX_JUGADORES_PARTIDA) {
             justificacion.setDetalle(Vocabulario.Motivo.PARTICIPACION_EN_JUEGOS_SUPERADA);
+            this.myAgent_organizador.addMsgConsole("Error PARTICIPACION_EN_JUEGOS_SUPERADA");
             errores++;
         }
 
         Map<String, Partida_Organizador> partidas = this.myAgent_organizador.getPartidas();
         if (partidas.size() > MAX_PARTIDAS) {
             justificacion.setDetalle(Vocabulario.Motivo.SUPERADO_LIMITE_PARTIDAS);
+            this.myAgent_organizador.addMsgConsole("Error SUPERADO_LIMITE_PARTIDAS");
+            errores++;
         }
         if (partidas.get(idJuego) != null) {
             justificacion.setDetalle(Vocabulario.Motivo.JUEGOS_ACTIVOS_SUPERADOS);
+            this.myAgent_organizador.addMsgConsole("Error JUEGOS_ACTIVOS_SUPERADOS");
+            errores++;
         }
 
         if (errores != 0) {
@@ -108,13 +136,12 @@ public class TaskResponserPropose_Organizador extends ProposeResponder {
 
         } else {
             JuegoAceptado juegoAceptado = new JuegoAceptado();
-            
+
             // TODO AgenteJuego es abstracto e implementa:
             //      Monitor|Organizador|Jugador
 //            Monitor agenteJuego_m = new Monitor();
 //            agenteJuego_m.setAgenteMonitor(propose.getSender());
 //            agenteJuego_m.setNombre(propose.getSender().getName());
-
             Organizador agenteJuego_o = new Organizador();
             agenteJuego_o.setAgenteOrganizador(this.myAgent_organizador.getAID());
             // DUDAS
@@ -129,6 +156,16 @@ public class TaskResponserPropose_Organizador extends ProposeResponder {
             } catch (Codec.CodecException | OntologyException ex) {
                 this.myAgent_organizador.addMsgConsole("Error al justificar el motivo del fallo al completar un juego");
             }
+
+            this.myAgent_organizador.addMsgConsole("Propose Completar Partida");
+            // Completar Partida
+            Partida partida = new Partida();
+            partida.setJuego(juego);
+            partida.setRonda(0);
+            partida.setMaxRondas(10);
+            partida.setIdPartida("ID_PARTIDA_" + this.idPartida);
+            this.idPartida++;
+            this.myAgent_organizador.Propose_CompletarPartida(infoJuego, partida, listaJugadores);
         }
 
         return reply;

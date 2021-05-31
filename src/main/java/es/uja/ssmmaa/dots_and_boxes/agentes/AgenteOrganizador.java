@@ -17,6 +17,7 @@ import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.TIME_OUT_1;
 import es.uja.ssmmaa.dots_and_boxes.gui.ConsolaJFrame;
 import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizadorSub;
 import es.uja.ssmmaa.dots_and_boxes.interfaces.SubscripcionDF;
+import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.MY_GAME;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskResponderSubscription_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskIniciatorSubscription_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendNotifications_Organizador_InformarResultado;
@@ -46,6 +47,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.proto.SubscriptionInitiator;
 import jade.util.leap.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
@@ -82,7 +84,7 @@ import java.util.Map;
  * @author nono_
  */
 public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrganizadorSub {
-    
+
     private GestorSubscripciones gestor;
 
     // Para la generación y obtención del contenido de los mensages
@@ -100,13 +102,13 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     private Map<String, Deque<AID>> agentesConocidos;
     private Map<String, TaskIniciatorSubscription_Organizador> subActivas;
     private Map<String, Partida_Organizador> partidasMap;
-    
+
     public AgenteOrganizador() {
         this.agentesConocidos = new HashMap<>();
         this.subActivas = new HashMap<>();
         this.partidasMap = new HashMap<>();
     }
-    
+
     @Override
     protected void setup() {
         // Inicialización de las variables del agente
@@ -119,22 +121,22 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         dfd.setName(getAID());
         ServiceDescription sd = new ServiceDescription();
         sd.setType(Vocabulario.TipoServicio.ORGANIZADOR.name());
-        sd.setName(Vocabulario.TipoJuego.ENCERRADO.name());
+        sd.setName(MY_GAME.name());
         dfd.addServices(sd);
         try {
             DFService.register(this, dfd);
         } catch (FIPAException fe) {
             fe.printStackTrace();
         }
-        
+
         init();
     }
-    
+
     @Override
     protected void takeDown() {
         // Cancelamos las subscripciones
         for (Map.Entry<String, TaskIniciatorSubscription_Organizador> entry : this.subActivas.entrySet()) {
-            
+
         }
         // Eliminar registro del agente en las Páginas Amarillas
         try {
@@ -148,16 +150,16 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
 
         // Liberación de recursos, incluido el GUI
         this.UI_consola.dispose();
-        
+
         MicroRuntime.stopJADE();
     }
-    
+
     public void init() {
         //Registro de la Ontología
         this.manager = new ContentManager();
         this.codec = new SLCodec();
         try {
-            this.ontology = Vocabulario.getOntology(TipoJuego.ENCERRADO);
+            this.ontology = Vocabulario.getOntology(MY_GAME);
             this.manager = (ContentManager) getContentManager();
             this.manager.registerLanguage(this.codec);
             this.manager.registerOntology(this.ontology);
@@ -171,7 +173,6 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         // Para localiar a los agentes 
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription templateSd = new ServiceDescription();
-        templateSd.setType(Vocabulario.TipoServicio.ORGANIZADOR.name());
         template.addServices(templateSd);
         addBehaviour(new TareaSubscripcionDF(this, template));
 
@@ -198,7 +199,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         // TODO
         //addBehaviour(new TaskSendNotifications_Organizador(this, idPartida));
     }
-    
+
     @Override
     public void addAgent(AID agente, Vocabulario.TipoJuego juego, Vocabulario.TipoServicio servicio) {
         this.addMsgConsole("=============================================");
@@ -206,19 +207,19 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         this.addMsgConsole("addAgent    juego: " + juego.name());
         this.addMsgConsole("addAgent Servicio: " + servicio.name());
         this.addMsgConsole("=============================================");
-        
+
         Deque<AID> lista = this.agentesConocidos.getOrDefault(servicio.name() + juego.name(), new LinkedList<>());
-        
+
         switch (servicio) {
             case JUGADOR:
-                
+
                 lista.add(agente);
                 break;
 //            case MONITOR:
 //                lista.add(agente);
 //                break;
             case ORGANIZADOR:
-                
+
                 break;
             case TABLERO:
                 ACLMessage msg = new ACLMessage(ACLMessage.SUBSCRIBE);
@@ -229,17 +230,17 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
                 // AID Tablero
                 msg.addReceiver(agente);
                 msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT_1));
-                
+
                 TaskIniciatorSubscription_Organizador task = new TaskIniciatorSubscription_Organizador(this, msg);
                 addBehaviour(task);
-                
+
                 lista.add(agente);
                 break;
         }
-        
+        this.addMsgConsole(String.format("Se ha añadido a agentesConocidos (%s) = %s", servicio.name() + juego.name(), "la lista de " + Arrays.toString(lista.toArray())));
         this.agentesConocidos.put(servicio.name() + juego.name(), lista);
     }
-    
+
     @Override
     public boolean removeAgent(AID agente, Vocabulario.TipoJuego juego, Vocabulario.TipoServicio servicio) {
         boolean to_return = false;
@@ -253,13 +254,13 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
                 to_return = true;
             }
         }
-        
+
         this.cancelSubscription(agente);
 
         // Actualizamos
         lista.removeAll(list_to_delete);
         this.agentesConocidos.put(servicio.name() + juego.name(), lista);
-        
+
         return to_return;
     }
 
@@ -271,17 +272,17 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     public GestorSubscripciones getGestor() {
         return this.gestor;
     }
-    
+
     @Override
     public ContentManager getManager() {
         return this.manager;
     }
-    
+
     @Override
     public Ontology getOntology() {
         return this.ontology;
     }
-    
+
     @Override
     public Codec getCodec() {
         return codec;
@@ -305,22 +306,22 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         this.addMsgConsole("addSubscription: " + agent.getLocalName());
         this.subActivas.put(agent.getLocalName(), (TaskIniciatorSubscription_Organizador) sub);
     }
-    
+
     @Override
     public void cancelSubscription(AID agente) {
         this.addMsgConsole("cancelSubscription: " + agente.getLocalName());
         TaskIniciatorSubscription_Organizador sub = this.subActivas.remove(agente.getLocalName());
-        
+
         if (sub != null) {
             sub.cancel(agente, true);
             this.addMsgConsole("SUSBCRIPCIÓN CANCELADA PARA\n" + agente);
         }
     }
-    
+
     public Map<String, Partida_Organizador> getPartidas() {
         return partidasMap;
     }
-    
+
     @Override
     public Partida_Organizador getPartida(String idPartida) {
         return this.partidasMap.getOrDefault(idPartida, null);
@@ -329,75 +330,47 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     /**
      * <pre>
      * El AgenteOrganizador se encarga de ir generando las rondas necesarias
-     * para completar el juego. El número de rondas dependerá del atributo
+     * para completar el juego.El número de rondas dependerá del atributo
      * Modo del elemento CompletarJuego. En cada ronda se generan un número de
      * partidas que deben ser completadas por el AgenteTablero.
      * </pre>
      *
+     * @param infoJuego
      * @param partida
      * @param listaJugadores
      */
-    public void Propose_CompletarPartida(Partida partida, List listaJugadores) {
-        Juego juego = new Juego();
-        juego.setIdJuego("ID_JUEGO");
-        juego.setTipoJuego(TipoJuego.ENCERRADO);
-        partida.setIdPartida("ID_PARTIDA");
-        partida.setJuego(juego);
-        partida.setMaxRondas(10);
-        partida.setRonda(3);
+    public void Propose_CompletarPartida(InfoJuego infoJuego, Partida partida, List listaJugadores) {
         // Contenido del mensaje representado en la ontología
         CompletarPartida completarPartida = new CompletarPartida();
-        completarPartida.setPartida(partida);
         // TODO
+        completarPartida.setPartida(partida);
         completarPartida.setListaJugadores(listaJugadores);
+        completarPartida.setInfoJuego(infoJuego);
+
+        // Seleccionamos el tablero del encerrado para completar partida
+        AID tableroEncerrado = this.agentesConocidos.get(Vocabulario.TipoServicio.TABLERO.name() + Vocabulario.TipoJuego.ENCERRADO.name()).getFirst();
+        this.addMsgConsole("Se envia a " + tableroEncerrado.getLocalName());
 
         // Creamos el mensaje a enviar
         ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
         msg.setProtocol(FIPANames.InteractionProtocol.FIPA_PROPOSE);
         msg.setSender(getAID());
+        msg.addReceiver(tableroEncerrado);
         msg.setLanguage(codec.getName());
         msg.setOntology(ontology.getName());
         msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT_1));
-        
-        Action ac = new Action(this.getAID(), completarPartida);
-        
-        try {
-            // Completamos en contenido del mensajes
-            manager.fillContent(msg, ac);
-        } catch (Codec.CodecException | OntologyException ex) {
-            this.addMsgConsole("Error en la construcción del mensaje en Proponer Juego \n" + ex);
-        }
-        
-        TaskSendPropose_Organizador task = new TaskSendPropose_Organizador(this, msg, completarPartida);
-        addBehaviour(task);
-    }
-    
-    public void Propose_PartidaATablero(Juego juego, Vocabulario.Modo modo, InfoJuego infoJuego) {
-        // Contenido del mensaje representado en la ontología
-        ProponerJuego proponerJuego = new ProponerJuego();
-        proponerJuego.setJuego(juego);
-        proponerJuego.setModo(modo);
-        proponerJuego.setInfoJuego(infoJuego);
 
-        // Creamos el mensaje a enviar
-        ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
-        msg.setProtocol(FIPANames.InteractionProtocol.FIPA_PROPOSE);
-        msg.setSender(getAID());
-        
-        msg.setLanguage(this.codec.getName());
-        msg.setOntology(this.ontology.getName());
-        msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT_1));
-        
-        Action ac = new Action(this.getAID(), proponerJuego);
-        
+        Action ac = new Action(this.getAID(), completarPartida);
+
         try {
             // Completamos en contenido del mensajes
             manager.fillContent(msg, ac);
         } catch (Codec.CodecException | OntologyException ex) {
-            this.addMsgConsole("Error en la construcción del mensaje en Proponer Juego \n" + ex);
+            this.addMsgConsole("Error en la construcción del mensaje en Completar Partida");
+            this.addMsgConsole(ex.toString());
         }
-        
-        TaskSendPropose_Organizador task = new TaskSendPropose_Organizador(this, msg, proponerJuego);
+        this.addMsgConsole("Envio la propuesta de completar partida al tablero");
+        TaskSendPropose_Organizador task = new TaskSendPropose_Organizador(this, msg);
         addBehaviour(task);
     }
 
@@ -410,7 +383,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
      * @param idPartida
      */
     public void Inform_ClasificacionJuego_o_IncidenciaJuego(String idPartida) {
-        
+
         addBehaviour(new TaskSendNotifications_Organizador_InformarResultado(this, idPartida));
     }
 }

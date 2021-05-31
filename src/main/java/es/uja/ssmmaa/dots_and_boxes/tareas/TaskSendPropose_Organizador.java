@@ -35,7 +35,7 @@ public class TaskSendPropose_Organizador extends ProposeInitiator {
     private final TasksOrganizador agente;
     private final ContentManager manager;
 
-    public TaskSendPropose_Organizador(Agent a, ACLMessage msg, AgentAction agentAction) {
+    public TaskSendPropose_Organizador(Agent a, ACLMessage msg) {
         super(a, msg);
         this.agente = (TasksOrganizador) a;
         this.manager = agente.getManager();

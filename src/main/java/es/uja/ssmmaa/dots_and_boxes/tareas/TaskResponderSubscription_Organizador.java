@@ -7,6 +7,7 @@ package es.uja.ssmmaa.dots_and_boxes.tareas;
 
 import es.uja.ssmmaa.dots_and_boxes.agentes.AgenteOrganizador;
 import es.uja.ssmmaa.dots_and_boxes.interfaces.TasksOrganizadorSub;
+import static es.uja.ssmmaa.dots_and_boxes.project.Constantes.MY_GAME;
 import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
 import es.uja.ssmmaa.ontologia.Vocabulario;
 import es.uja.ssmmaa.ontologia.juegoTablero.Juego;
@@ -49,7 +50,7 @@ public class TaskResponderSubscription_Organizador extends SubscriptionResponder
         Juego juego = new Juego();
         // DUDA Lo dejamos por defecto?
         juego.setIdJuego("");
-        juego.setTipoJuego(Vocabulario.TipoJuego.ENCERRADO);
+        juego.setTipoJuego(MY_GAME);
         justificacion.setJuego(juego);
 
         // Responde afirmativamente a la suscripción siempre

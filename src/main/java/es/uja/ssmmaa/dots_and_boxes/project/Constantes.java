@@ -5,6 +5,7 @@
  */
 package es.uja.ssmmaa.dots_and_boxes.project;
 
+import es.uja.ssmmaa.ontologia.Vocabulario;
 import java.util.Random;
 
 /**
@@ -22,11 +23,12 @@ public interface Constantes {
     public static final int PRIMERO = 0;
     public static final int SEGUNDO = 1;
     public static final int MONEY = 250;
-    
+
     public static final int MAX_PARTIDAS = 3;
     public static final int MAX_JUGADORES_PARTIDA = 2;
-    
-    
+
+    public static final Vocabulario.TipoJuego MY_GAME = Vocabulario.TipoJuego.ENCERRADO;
+
     public static final long TIME_PER_BID_ROUND_SECONDS = 40;
     public static final long TIME_IN_WHICH_THE_BID_IS_REFRESHED__SECONDS = 1;
 
