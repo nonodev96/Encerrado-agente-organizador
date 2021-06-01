@@ -5,6 +5,7 @@
  */
 package es.uja.ssmmaa.dots_and_boxes.agentes;
 
+import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSend_Inform_IncidenciaJuego;
 import es.uja.ssmmaa.ontologia.Vocabulario;
 import es.uja.ssmmaa.ontologia.Vocabulario.TipoJuego;
 import es.uja.ssmmaa.ontologia.juegoTablero.CompletarPartida;
@@ -29,6 +30,7 @@ import es.uja.ssmmaa.dots_and_boxes.project.Partida_Organizador;
 import static es.uja.ssmmaa.ontologia.Vocabulario.JUEGOS;
 import static es.uja.ssmmaa.ontologia.Vocabulario.TIPOS_SERVICIO;
 import es.uja.ssmmaa.ontologia.encerrado.Encerrado;
+import es.uja.ssmmaa.ontologia.juegoTablero.IncidenciaJuego;
 
 import jade.content.ContentManager;
 import jade.content.lang.Codec;
@@ -395,7 +397,10 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
      * @param idPartida
      */
     public void Inform_ClasificacionJuego_o_IncidenciaJuego(String idPartida) {
-
         addBehaviour(new TaskSendNotifications_Organizador_InformarResultado(this, idPartida));
+    }
+
+    public void Inform_IncidenciaJuego(IncidenciaJuego incidenciaJuego) {
+        addBehaviour(new TaskSend_Inform_IncidenciaJuego(this, this.agente_monitor_AID, incidenciaJuego));
     }
 }
