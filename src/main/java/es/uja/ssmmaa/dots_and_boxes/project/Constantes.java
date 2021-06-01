@@ -26,6 +26,8 @@ public interface Constantes {
 
     public static final int MAX_PARTIDAS = 3;
     public static final int MAX_JUGADORES_PARTIDA = 2;
+    
+    public static final int SIZE_TABLERO = 8;
 
     public static final Vocabulario.TipoJuego MY_GAME = Vocabulario.TipoJuego.ENCERRADO;
 

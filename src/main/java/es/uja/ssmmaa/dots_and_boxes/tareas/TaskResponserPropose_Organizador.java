@@ -85,7 +85,9 @@ public class TaskResponserPropose_Organizador extends ProposeResponder {
         completarJuego = (CompletarJuego) action.getAction();
 
         // ================
-        InfoJuego infoJuego = (InfoJuego) completarJuego.getAgenteJuego();
+        Encerrado infoJuego = (Encerrado) completarJuego.getAgenteJuego();
+
+        this.myAgent_organizador.addMsgConsole("InfoJuego: " + infoJuego);
 
         Juego juego = completarJuego.getJuego();
         String idJuego = juego.getIdJuego();
@@ -108,7 +110,7 @@ public class TaskResponserPropose_Organizador extends ProposeResponder {
             this.myAgent_organizador.addMsgConsole("Error TIPO_JUEGO_NO_IMPLEMENTADO modo");
             errores++;
         }
-        if (listaJugadores.size() > MAX_JUGADORES_PARTIDA) {
+        if (listaJugadores.size() > 5) {
             justificacion.setDetalle(Vocabulario.Motivo.PARTICIPACION_EN_JUEGOS_SUPERADA);
             this.myAgent_organizador.addMsgConsole("Error PARTICIPACION_EN_JUEGOS_SUPERADA");
             errores++;

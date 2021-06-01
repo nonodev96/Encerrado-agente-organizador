@@ -26,6 +26,9 @@ import es.uja.ssmmaa.dots_and_boxes.tareas.TaskSendPropose_Organizador;
 import es.uja.ssmmaa.dots_and_boxes.tareas.TareaSubscripcionDF;
 import es.uja.ssmmaa.dots_and_boxes.util.GestorSubscripciones;
 import es.uja.ssmmaa.dots_and_boxes.project.Partida_Organizador;
+import static es.uja.ssmmaa.ontologia.Vocabulario.JUEGOS;
+import static es.uja.ssmmaa.ontologia.Vocabulario.TIPOS_SERVICIO;
+import es.uja.ssmmaa.ontologia.encerrado.Encerrado;
 
 import jade.content.ContentManager;
 import jade.content.lang.Codec;
@@ -115,6 +118,20 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
         this.gestor = new GestorSubscripciones();
         this.agente_organizador_AID = getAID();
         this.UI_consola = new ConsolaJFrame(this);
+        
+        //Registro de la Ontología
+        this.manager = new ContentManager();
+        this.codec = new SLCodec();
+        try {
+            this.ontology = Vocabulario.getOntology(MY_GAME);
+            this.manager = (ContentManager) getContentManager();
+            this.manager.registerLanguage(this.codec);
+            this.manager.registerOntology(this.ontology);
+        } catch (BeanOntologyException ex) {
+            this.addMsgConsole("Error al registrar la ontología \n" + ex);
+            this.doDelete();
+            MicroRuntime.stopJADE();
+        }
 
         // Registro del agente en las Páginas Amarrillas
         DFAgentDescription dfd = new DFAgentDescription();
@@ -155,24 +172,19 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
     }
 
     public void init() {
-        //Registro de la Ontología
-        this.manager = new ContentManager();
-        this.codec = new SLCodec();
-        try {
-            this.ontology = Vocabulario.getOntology(MY_GAME);
-            this.manager = (ContentManager) getContentManager();
-            this.manager.registerLanguage(this.codec);
-            this.manager.registerOntology(this.ontology);
-        } catch (BeanOntologyException ex) {
-            this.addMsgConsole("Error al registrar la ontología \n" + ex);
-            this.doDelete();
-            MicroRuntime.stopJADE();
+        for (Vocabulario.TipoServicio servicio : TIPOS_SERVICIO) {
+            for (TipoJuego juego : JUEGOS) {
+                agentesConocidos.put(servicio.name() + juego.name(), new LinkedList<>());
+            }
         }
 
         // Suscripción al servicio de páginas amarillas
         // Para localiar a los agentes 
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription templateSd = new ServiceDescription();
+        // Solo buscamos el tablero
+        templateSd.setType(Vocabulario.TipoServicio.TABLERO.name());
+        templateSd.setName(MY_GAME.name());
         template.addServices(templateSd);
         addBehaviour(new TareaSubscripcionDF(this, template));
 
@@ -339,7 +351,7 @@ public class AgenteOrganizador extends Agent implements SubscripcionDF, TasksOrg
      * @param partida
      * @param listaJugadores
      */
-    public void Propose_CompletarPartida(InfoJuego infoJuego, Partida partida, List listaJugadores) {
+    public void Propose_CompletarPartida(Encerrado infoJuego, Partida partida, List listaJugadores) {
         // Contenido del mensaje representado en la ontología
         CompletarPartida completarPartida = new CompletarPartida();
         // TODO
